@@ -106,7 +106,7 @@
 
         let currentMarker = null;
 
-        // 2. Query Handling via the Main Header Input Bar
+        // 2. Query Handling via the Main Header Input Bar (With ngrok bypass header)
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
 
@@ -116,7 +116,12 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`);
+                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, {
+                    method: "GET",
+                    headers: {
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
                 if (!response.ok) throw new Error("Address not found or out of urban planning range.");
                 
                 const data = await response.json();
@@ -131,7 +136,7 @@
             }
         }
 
-        // 3. Coordinate Point Interception via Direct Map Clicking
+        // 3. Coordinate Point Interception via Direct Map Clicking (With ngrok bypass header)
         map.on('click', async function(e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
@@ -139,12 +144,16 @@
             updateMapMarker(lat, lng, `Selected Coordinate Point`);
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`);
+                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
+                    method: "GET",
+                    headers: {
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
                 if (!response.ok) throw new Error("Failed to fetch spatial database attributes.");
                 
                 const data = await response.json();
                 
-                // Construct fallback structures for dynamic coordinates interface injection
                 const formattedData = {
                     full_address: `Map Query Point (${lat.toFixed(5)}, ${lng.toFixed(5)})`,
                     wgs84_latitude: lat,
@@ -157,7 +166,7 @@
                     far_pct: data.far_pct || '-',
                     g1: data.g1, g2: data.g2, g3: data.g3, g4: data.g4, g5: data.g5,
                     g6: data.g6, g7: data.g7, g8: data.g8, g9: data.g9, g10: data.g10,
-                    g11: data.g11, g12: data.g12, g13: data.g13, g14: data.g14, g15: data.g15,
+                    g11: data.g11, g12: data.g12, g13: data.g13, g14: data.g14, i15: data.g15,
                     g16: data.g16, g17: data.g17, g18: data.g18, g19: data.g19, g20: data.g20
                 };
                 
@@ -170,7 +179,6 @@
 
         // 4. Interface Rendering Engine to display structured PostGIS results
         function updateDashboardUI(data) {
-            // Render basic location metrics
             document.getElementById('resAddress').innerText = data.full_address;
             document.getElementById('resCoords').innerText = `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`;
             document.getElementById('resMasterPlan').innerText = data.master_plan || '-';
@@ -180,7 +188,6 @@
             document.getElementById('resBCR').innerText = data.bcr_pct ? data.bcr_pct + "%" : '-';
             document.getElementById('resFAR').innerText = data.far_pct ? data.far_pct + "%" : '-';
             
-            // Loop array mappings to output G1-G20 values safely
             const fallbackMsg = "No data / Not covered in current allowances";
             for (let i = 1; i <= 20; i++) {
                 const key = `g${i}`;
