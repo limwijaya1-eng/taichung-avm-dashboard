@@ -11,7 +11,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* Responsive height limits using standard CSS Media Queries */
         #map { height: 40vh; }
         @media (min-width: 768px) {
             #map { height: calc(100vh - 140px); }
@@ -23,7 +22,7 @@
     <header class="bg-slate-800 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <h1 class="text-lg md:text-xl font-bold tracking-wide text-center sm:text-left">Taichung City Land Valuation (AVM) Dashboard</h1>
         <div class="flex items-center gap-2 bg-white p-1 rounded shadow-inner text-gray-800 w-full sm:w-96">
-            <input type="text" id="addressInput" placeholder="Enter full address (e.g., 文華路100號)" class="px-3 py-1 text-sm w-full focus:outline-none">
+            <input type="text" id="addressInput" placeholder="Enter full address (e.g., 大明路478)" class="px-3 py-1 text-sm w-full focus:outline-none">
             <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded transition">Search</button>
         </div>
     </header>
@@ -47,6 +46,7 @@
                 <div class="flex flex-col gap-2 mb-4 text-xs border-b border-gray-100 pb-3 text-slate-700">
                     <div class="flex justify-between"><span class="font-medium">Master Plan:</span> <span id="resMasterPlan" class="text-slate-600 text-right">-</span></div>
                     <div class="flex justify-between"><span class="font-medium">Detailed Plan:</span> <span id="resDetailedPlan" class="text-slate-600 text-right">-</span></div>
+                    <div class="flex justify-between"><span class="font-medium">Zoning (Doc/原文):</span> <span id="resZoningDoc" class="text-purple-700 font-bold text-right">-</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-3 md:gap-4">
                     <div class="bg-blue-50 p-2.5 md:p-3 rounded-lg">
@@ -54,43 +54,32 @@
                         <span id="resDistrict" class="text-sm md:text-base font-bold text-blue-900">-</span>
                     </div>
                     <div class="bg-purple-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-purple-600 block">Zoning Type (使用分區)</span>
+                        <span class="text-xs text-purple-600 block">Zoning Type (SHP)</span>
                         <span id="resZoningType" class="text-sm md:text-base font-bold text-purple-900">-</span>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 md:p-3 rounded-lg">
+                    <div class="bg-emerald-50 p-2.5 md:p-3 rounded-lg col-span-2">
                         <span class="text-xs text-emerald-600 block">BCR (建蔽率)</span>
                         <span id="resBCR" class="text-lg md:text-xl font-black text-emerald-800">-</span>
                     </div>
                     <div class="bg-amber-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-amber-600 block">FAR (容積率)</span>
-                        <span id="resFAR" class="text-lg md:text-xl font-black text-amber-800">-</span>
+                        <span class="text-xs text-amber-600 block">Base FAR (基準容積率)</span>
+                        <span id="resFarBase" class="text-base md:text-lg font-bold text-amber-800">-</span>
+                    </div>
+                    <div class="bg-red-50 p-2.5 md:p-3 rounded-lg">
+                        <span class="text-xs text-red-600 block">Max FAR (上限容積率)</span>
+                        <span id="resFarMax" class="text-base md:text-lg font-bold text-red-800">-</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200">
-                <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Land Use Regulation Matrix (G1 - G20)</h2>
-                <div id="matrixContainer" class="text-xs text-slate-700 divide-y divide-gray-100 max-h-64 md:max-h-96 overflow-y-auto pr-1">
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G1 - 獨立雙戶住宅:</span> <span id="resG1" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G2 - 集合住宅:</span> <span id="resG2" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G3 - 教育設施:</span> <span id="resG3" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G4 - 社區遊憩設施:</span> <span id="resG4" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G5 - 衛生及福利設施:</span> <span id="resG5" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G6 - 電力、郵政及通訊設施:</span> <span id="resG6" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G7 - 行政機關:</span> <span id="resG7" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G8 - 文教設施:</span> <span id="resG8" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G9 - 零售業:</span> <span id="resG9" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G10 - 日常服務業:</span> <span id="resG10" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G11 - 一般服務業:</span> <span id="resG11" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G12 - 辦公事務所及工商服務業:</span> <span id="resG12" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G13 - 金融、保險及不動產業主要機構:</span> <span id="resG13" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G14 - 休閒服務業:</span> <span id="resG14" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G15 - 運輸服務業:</span> <span id="resG15" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G16 - 旅館業:</span> <span id="resG16" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G17 - 貿易展示設施:</span> <span id="resG17" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G18 - 批發業:</span> <span id="resG18" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium shrink-0">G19 - 娛樂服務業:</span> <span id="resG19" class="text-slate-600 text-right">-</span></div>
-                    <div class="py-1.5 flex justify-between gap-2"><span class="font-medium text-slate-500 shrink-0">G20 - Others:</span> <span id="resG20" class="text-slate-600 text-right">-</span></div>
+                <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Building Controls & Setbacks</h2>
+                <div class="text-xs text-slate-700 divide-y divide-gray-100">
+                    <div class="py-2 flex justify-between"><span class="font-medium">Height Ratio (高度比):</span> <span id="resHeightRatio" class="text-slate-600">-</span></div>
+                    <div class="py-2 flex justify-between"><span class="font-medium">Front Yard Depth (前院深度):</span> <span id="resFrontYard" class="text-slate-600">-</span></div>
+                    <div class="py-2 flex justify-between"><span class="font-medium">Rear Yard Depth (後院深度):</span> <span id="resRearYard" class="text-slate-600">-</span></div>
+                    <div class="py-2 flex flex-col gap-1"><span class="font-medium">Notes (備註):</span> <p id="resNotes" class="text-slate-600 bg-gray-50 p-2 rounded text-justify leading-relaxed">-</p></div>
+                    <div class="py-2 flex flex-col gap-1"><span class="font-medium text-slate-800">Full Regulation Text (管制要點全文):</span> <div id="resFullText" class="text-slate-600 bg-slate-50 border border-gray-100 p-2 rounded text-justify max-h-40 overflow-y-auto leading-relaxed">-</div></div>
                 </div>
             </div>
 
@@ -100,13 +89,11 @@
     <script>
         const API_BASE_URL = "https://evacuee-subzero-annuity.ngrok-free.dev";
 
-        // 1. Initialize Map view with adaptive mobile dragging options
         const map = L.map('map', {
-            tap: !L.Browser.mobile, // Prevent tap conflicts on mobile browsers
+            tap: !L.Browser.mobile,
             dragging: !L.Browser.mobile || L.Browser.retina
-        }).setView([24.1793, 120.6499], 15); // Default zoom directly to Feng Chia University center
+        }).setView([24.1793, 120.6499], 15);
         
-        // Re-enable simple dragging for mobile after touch initialize
         if (L.Browser.mobile) { map.dragging.enable(); }
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -115,50 +102,37 @@
 
         let currentMarker = null;
 
-        // 2. Query Handling via the Main Header Input Bar (With ngrok bypass header)
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
-
             if (!fullAddress) {
                 alert("Please enter an address to search!");
                 return;
             }
-
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, {
                     method: "GET",
                     headers: { "ngrok-skip-browser-warning": "true" }
                 });
                 if (!response.ok) throw new Error("Address not found or out of urban planning range.");
-                
                 const data = await response.json();
                 updateDashboardUI(data);
-                
-                const lat = data.wgs84_latitude;
-                const lng = data.wgs84_longitude;
-                updateMapMarker(lat, lng, data.full_address);
-
+                updateMapMarker(data.wgs84_latitude, data.wgs84_longitude, data.full_address);
             } catch (error) {
                 alert(error.message);
             }
         }
 
-        // 3. Coordinate Point Interception via Direct Map Clicking (With ngrok bypass header)
         map.on('click', async function(e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
-
             updateMapMarker(lat, lng, `Selected Coordinate Point`);
-
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
                     method: "GET",
                     headers: { "ngrok-skip-browser-warning": "true" }
                 });
                 if (!response.ok) throw new Error("Failed to fetch spatial database attributes.");
-                
                 const data = await response.json();
-                
                 const formattedData = {
                     full_address: `Map Query Point (${lat.toFixed(5)}, ${lng.toFixed(5)})`,
                     wgs84_latitude: lat,
@@ -167,53 +141,47 @@
                     detailed_plan: data.detailed_plan || '-',
                     district: data.district || '-',
                     zoning_type: data.zoning_type || '-',
+                    zoning_doc: data.zoning_doc || '-',
                     bcr_pct: data.bcr_pct || '-',
-                    far_pct: data.far_pct || '-',
-                    g1: data.g1, g2: data.g2, g3: data.g3, g4: data.g4, g5: data.g5,
-                    g6: data.g6, g7: data.g7, g8: data.g8, g9: data.g9, g10: data.g10,
-                    g11: data.g11, g12: data.g12, g13: data.g13, g14: data.g14, g15: data.g15,
-                    g16: data.g16, g17: data.g17, g18: data.g18, g19: data.g19, g20: data.g20
+                    far_base_pct: data.far_base_pct || '-',
+                    far_max_pct: data.far_max_pct || '-',
+                    height_ratio: data.height_ratio || '-',
+                    front_yard: data.front_yard || '-',
+                    rear_yard: data.rear_yard || '-',
+                    notes: data.notes || '-',
+                    full_text: data.full_text || '-'
                 };
-                
                 updateDashboardUI(formattedData);
-
             } catch (error) {
                 console.error(error);
             }
         });
 
-        // 4. Interface Rendering Engine to display structured PostGIS results
         function updateDashboardUI(data) {
             document.getElementById('resAddress').innerText = data.full_address;
             document.getElementById('resCoords').innerText = `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`;
-            document.getElementById('resMasterPlan').innerText = data.master_plan || '-';
-            document.getElementById('resDetailedPlan').innerText = data.detailed_plan || '-';
-            document.getElementById('resDistrict').innerText = data.district || '-';
-            document.getElementById('resZoningType').innerText = data.zoning_type || '-';
-            document.getElementById('resBCR').innerText = data.bcr_pct ? data.bcr_pct + "%" : '-';
-            document.getElementById('resFAR').innerText = data.far_pct ? data.far_pct + "%" : '-';
+            document.getElementById('resMasterPlan').innerText = data.master_plan;
+            document.getElementById('resDetailedPlan').innerText = data.detailed_plan;
+            document.getElementById('resDistrict').innerText = data.district;
+            document.getElementById('resZoningType').innerText = data.zoning_type;
+            document.getElementById('resZoningDoc').innerText = data.zoning_doc;
             
-            const fallbackMsg = "No data / Not covered in current allowances";
-            for (let i = 1; i <= 20; i++) {
-                const key = `g${i}`;
-                const elementId = `resG${i}`;
-                const targetElement = document.getElementById(elementId);
-                
-                if (targetElement) {
-                    targetElement.innerText = (data[key] !== null && data[key] !== undefined) ? data[key] : fallbackMsg;
-                }
-            }
+            // Format Percentages safely
+            document.getElementById('resBCR').innerText = data.bcr_pct === "Data Not Available" ? "Data Not Available" : data.bcr_pct + "%";
+            document.getElementById('resFarBase').innerText = data.far_base_pct === "Data Not Available" ? "Data Not Available" : data.far_base_pct + "%";
+            document.getElementById('resFarMax').innerText = data.far_max_pct === "Data Not Available" ? "Data Not Available" : data.far_max_pct + "%";
+            
+            // Setbacks & Regulation Text Rendering
+            document.getElementById('resHeightRatio').innerText = data.height_ratio;
+            document.getElementById('resFrontYard').innerText = data.front_yard === "Data Not Available" ? "Data Not Available" : data.front_yard + " M";
+            document.getElementById('resRearYard').innerText = data.rear_yard === "Data Not Available" ? "Data Not Available" : data.rear_yard + " M";
+            document.getElementById('resNotes').innerText = data.notes;
+            document.getElementById('resFullText').innerText = data.full_text;
         }
 
-        // 5. Kinematics Handling for Pin Repositioning and Screen Pan Effects
         function updateMapMarker(lat, lng, popupText) {
-            if (currentMarker) {
-                map.removeLayer(currentMarker);
-            }
-            currentMarker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(popupText)
-                .openPopup();
-            
+            if (currentMarker) { map.removeLayer(currentMarker); }
+            currentMarker = L.marker([lat, lng]).addTo(map).bindPopup(popupText).openPopup();
             map.flyTo([lat, lng], 17);
         }
     </script>
