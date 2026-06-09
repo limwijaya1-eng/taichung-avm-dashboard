@@ -57,10 +57,8 @@
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category:</span> <span id="iduCategory" class="font-bold text-slate-900">-</span></div>
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Area & Width:</span> <span id="iduSiteSpecs">-</span></div>
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Height Ratios & Limits:</span> <span id="iduHeightSpecs">-</span></div>
-                    
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Setback Framework:</span> <span id="iduSetbackSpecs" class="text-right font-medium text-blue-700">-</span></div>
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Major Road Setbacks:</span> <span id="iduRoadSetbackSpecs" class="text-right text-slate-600">-</span></div>
-                    
                     <div class="py-1.5 flex justify-between"><span class="font-medium">Pedestrian Walkway Width:</span> <span id="iduWalkwayWidth">-</span></div>
                     <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Permitted Uses:</span> <p id="iduPermitted" class="bg-gray-50 p-1.5 rounded text-slate-600 leading-normal text-justify">-</p></div>
                     <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Prohibited Uses:</span> <p id="iduProhibited" class="bg-red-50/50 p-1.5 rounded text-red-900 leading-normal text-justify">-</p></div>
@@ -96,8 +94,10 @@
         let currentMarker = null;
 
         const gridBox = document.getElementById("useGroupGrid");
-        for (let i = 1; i <= 19; i++) {
-            gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-400 block text-[7px]">G${i}</span><span id="nmcG${i}" class="text-slate-800 text-[10px] block">-</span></div>`;
+        if (gridBox) {
+            for (let i = 1; i <= 19; i++) {
+                gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-400 block text-[7px]">G${i}</span><span id="nmcG${i}" class="text-slate-800 text-[10px] block">-</span></div>`;
+            }
         }
 
         async function searchAddress() {
@@ -124,71 +124,80 @@
             } catch (error) { console.error(error); }
         });
 
-        // Dynamic Text Data Sanitizer
-        def_clean = (val) => (val === "nan" || val === "None" || val === "Data Not Available" || !val) ? "-" : val;
+        // Safe Text Sanitizer Function
+        const def_clean = (val) => (val === "nan" || val === "None" || val === "Data Not Available" || !val) ? "-" : val;
+
+        // Safe DOM Helper Function to prevent "Cannot set properties of null"
+        function safeSetText(id, value, isHTML = false) {
+            const el = document.getElementById(id);
+            if (el) {
+                if (isHTML) el.innerHTML = value;
+                else el.innerText = value;
+            }
+        }
 
         function updateDashboardUI(data) {
-            document.getElementById('resAddress').innerText = def_clean(data.full_address);
-            document.getElementById('resCoords').innerText = `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`;
-            document.getElementById('resMasterPlan').innerText = def_clean(data.master_plan);
-            document.getElementById('resDetailedPlan').innerText = def_clean(data.detailed_plan);
-            document.getElementById('resDistrict').innerText = def_clean(data.district);
-            document.getElementById('resZoningType').innerText = def_clean(data.zoning_type);
-            document.getElementById('resZoningDoc').innerText = def_clean(data.zoning_doc);
-            document.getElementById('resBCR').innerText = def_clean(data.bcr_pct) === "-" ? "-" : data.bcr_pct + "%";
-            document.getElementById('resFarBase').innerText = def_clean(data.far_base_pct) === "-" ? "-" : data.far_base_pct + "%";
+            // Bind Core Baseline Fields safely
+            safeSetText('resAddress', def_clean(data.full_address));
+            safeSetText('resCoords', `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`);
+            safeSetText('resMasterPlan', def_clean(data.master_plan));
+            safeSetText('resDetailedPlan', def_clean(data.detailed_plan));
+            safeSetText('resDistrict', def_clean(data.district));
+            safeSetText('resZoningType', def_clean(data.zoning_type));
+            safeSetText('resZoningDoc', def_clean(data.zoning_doc));
+            safeSetText('resBCR', def_clean(data.bcr_pct) === "-" ? "-" : data.bcr_pct + "%");
+            safeSetText('resFarBase', def_clean(data.far_base_pct) === "-" ? "-" : data.far_base_pct + "%");
 
             const detailedPlanStr = data.detailed_plan || '';
 
             if (detailedPlanStr.includes("新市政中心")) {
                 document.getElementById('newMunicipalContainer').classList.remove('hidden');
                 document.getElementById('iduContainer').classList.add('hidden');
-                document.getElementById('resFarMaxOrHeight').innerText = "Max Height Ratio: " + def_clean(data.height_ratio);
+                safeSetText('resFarMaxOrHeight', "Max Height Ratio: " + def_clean(data.height_ratio));
 
-                document.getElementById('nmcCategory').innerText = def_clean(data.nmc_category);
-                document.getElementById('nmcBlock').innerText = def_clean(data.nmc_block);
-                document.getElementById('nmcMinSite').innerText = def_clean(data.nmc_min_site);
+                safeSetText('nmcCategory', def_clean(data.nmc_category));
+                safeSetText('nmcBlock', def_clean(data.nmc_block));
+                safeSetText('nmcMinSite', def_clean(data.nmc_min_site));
                 
                 for (let i = 1; i <= 19; i++) {
                     const cellVal = data[`nmc_g${i}`];
                     const targetCell = document.getElementById(`nmcG${i}`);
-                    targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
-                    if (cellVal === "O" || cellVal === "G") targetCell.className = "text-emerald-600 bg-emerald-50 font-black rounded text-[10px]";
-                    else if (cellVal === "B" || cellVal === "C" || cellVal === "A") targetCell.className = "text-amber-600 bg-amber-50 font-black rounded text-[10px]";
-                    else targetCell.className = "text-slate-300 font-normal text-[10px]";
+                    if (targetCell) {
+                        targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
+                        if (cellVal === "O" || cellVal === "G") targetCell.className = "text-emerald-600 bg-emerald-50 font-black rounded text-[10px]";
+                        else if (cellVal === "B" || cellVal === "C" || cellVal === "A") targetCell.className = "text-amber-600 bg-amber-50 font-black rounded text-[10px]";
+                        else targetCell.className = "text-slate-300 font-normal text-[10px]";
+                    }
                 }
             } else {
                 document.getElementById('iduContainer').classList.remove('hidden');
                 document.getElementById('newMunicipalContainer').classList.add('hidden');
-                document.getElementById('resFarMaxOrHeight').innerText = def_clean(data.far_max_pct) === "-" ? "-" : data.far_max_pct + "%";
+                safeSetText('resFarMaxOrHeight', def_clean(data.far_max_pct) === "-" ? "-" : data.far_max_pct + "%");
 
-                // BINDING ALL COLUMNS IN HARMONIZED ENGLISH LOOKUP
-                document.getElementById('iduCategory').innerText = def_clean(data.nmc_category);
-                document.getElementById('iduSiteSpecs').innerHTML = `Min Area: <b>${def_clean(data.idu_min_site)}</b> ㎡ | Min Width: <b>${def_clean(data.idu_min_width)}</b> m`;
-                document.getElementById('iduHeightSpecs').innerHTML = `Max Height Ratio: <b>${def_clean(data.height_ratio)}</b> | Absolute Floors: <b>${def_clean(data.idu_height_floors)}</b> | Eave Height: <b>${def_clean(data.idu_height_eave)}</b> m`;
+                // BINDING ALL 44 NEW IDU COLUMNS SAFELY WITH THE PROTECTED INJECTION PIPELINE
+                safeSetText('iduCategory', def_clean(data.nmc_category));
+                safeSetText('iduSiteSpecs', `Min Area: <b>${def_clean(data.idu_min_site)}</b> ㎡ | Min Width: <b>${def_clean(data.idu_min_width)}</b> m`, true);
+                safeSetText('iduHeightSpecs', `Max Height Ratio: <b>${def_clean(data.height_ratio)}</b> | Absolute Floors: <b>${def_clean(data.idu_height_floors)}</b> | Eave Height: <b>${def_clean(data.idu_height_eave)}</b> m`, true);
+                safeSetText('iduSetbackSpecs', `Front: <b>${def_clean(data.idu_front_yard)}</b>m | Rear: <b>${def_clean(data.idu_rear_yard)}</b>m | Side: <b>${def_clean(data.idu_side_yard)}</b>m <br><span class="text-[9px] text-slate-500 font-normal">Side Note: ${def_clean(data.idu_side_note)}</span>`, true);
+                safeSetText('iduRoadSetbackSpecs', `Road Setback Depth: <b>${def_clean(data.idu_road_setback)}</b> m (Major Road target: <i>${def_clean(data.idu_road_name)}</i>)`, true);
+                safeSetText('iduWalkwayWidth', def_clean(data.idu_walkway_width) === "-" ? "-" : data.idu_walkway_width + " m");
+                safeSetText('iduPermitted', def_clean(data.idu_permitted_uses));
+                safeSetText('iduProhibited', def_clean(data.idu_prohibited_uses));
                 
-                // FIXED BINDING: Menggunakan iduSetbackSpecs yang sinkron dengan HTML
-                document.getElementById('iduSetbackSpecs').innerHTML = `Front: <b>${def_clean(data.idu_front_yard)}</b>m | Rear: <b>${def_clean(data.idu_rear_yard)}</b>m | Side: <b>${def_clean(data.idu_side_yard)}</b>m <br><span class="text-[9px] text-slate-500 font-normal">Side Note: ${def_clean(data.idu_side_note)}</span>`;
-                document.getElementById('iduRoadSetbackSpecs').innerHTML = `Road Setback Depth: <b>${def_clean(data.idu_road_setback)}</b> m (Major Road target: <i>${def_clean(data.idu_road_name)}</i>)`;
+                // Fence & Roof Parameters
+                safeSetText('iduFenceSpecs', `Max Fence Height: <b>${def_clean(data.idu_fence_max)}</b> m | Max Solid Part: <b>${def_clean(data.idu_fence_solid)}</b> m | Min Visual Transparency: <b>${def_clean(data.idu_fence_trans)}</b>% <br><span class="text-[10px] text-slate-600 block mt-0.5"><b>Design Request:</b> ${def_clean(data.idu_fence_req)}</span>`, true);
+                safeSetText('iduRoofSpecs', def_clean(data.idu_roof_trigger));
                 
-                document.getElementById('iduWalkwayWidth').innerText = def_clean(data.idu_walkway_width) === "-" ? "-" : data.idu_walkway_width + " m";
-                document.getElementById('iduPermitted').innerText = def_clean(data.idu_permitted_uses);
-                document.getElementById('iduProhibited').innerText = def_clean(data.idu_prohibited_uses);
+                // Greening & Parking Regulations
+                safeSetText('iduGreenSpecs', `Min Open Space Green Ratio: <b>${def_clean(data.idu_green_space_pct)}</b>% | Tree Density Requirement: <b>${def_clean(data.idu_tree_density)}</b> <br>Min Soil Depth: <i>${def_clean(data.idu_soil_depth)}</i>`, true);
+                safeSetText('iduParkingSpecs', `Min Spaces per Unit: <b>${def_clean(data.idu_parking_min)}</b> <br><b>Provision Standard:</b> ${def_clean(data.idu_parking_std)} <br><b>Off-Street Loading Dock Request:</b> ${def_clean(data.idu_loading_req)}`, true);
                 
-                // Fence & Roof Framework
-                document.getElementById('iduFenceSpecs').innerHTML = `Max Fence Height: <b>${def_clean(data.idu_fence_max)}</b> m | Max Solid Part: <b>${def_clean(data.idu_fence_solid)}</b> m | Min Visual Transparency: <b>${def_clean(data.idu_fence_trans)}</b>% <br><span class="text-[10px] text-slate-600 block mt-0.5"><b>Design Request:</b> ${def_clean(data.idu_fence_req)}</span>`;
-                document.getElementById('iduRoofSpecs').innerText = def_clean(data.idu_roof_trigger);
+                // FAR Incentives Matrix
+                safeSetText('iduBonusSpecs', `Public Amenities: <b>${def_clean(data.idu_b_public)}</b> <br>Comprehensive Dev: <b>${def_clean(data.idu_b_comprehensive)}</b> | Early Phase: <b>${def_clean(data.idu_b_early)}</b> <br>Vacant Land Greening: <b>${def_clean(data.idu_b_green)}</b> | Aged Bldg Redevel: <b>${def_clean(data.idu_b_aged)}</b> <br>Corner Plaza: <b>${def_clean(data.idu_b_plaza)}</b> <br><span class="text-purple-700 font-bold">Aggregate Cap Limit: ${def_clean(data.idu_b_cap)}</span> | TDR Applicability: <u>${def_clean(data.idu_tdr_applicable)}</u>`, true);
                 
-                // Greening, Soil & Parking Framework
-                document.getElementById('iduGreenSpecs').innerHTML = `Min Open Space Green Ratio: <b>${def_clean(data.idu_green_space_pct)}</b>% | Tree Density Requirement: <b>${def_clean(data.idu_tree_density)}</b> <br>Min Soil Depth: <i>${def_clean(data.idu_soil_depth)}</i>`;
-                document.getElementById('iduParkingSpecs').innerHTML = `Min Spaces per Unit: <b>${def_clean(data.idu_parking_min)}</b> <br><b>Provision Standard:</b> ${def_clean(data.idu_parking_std)} <br><b>Off-Street Loading Dock Request:</b> ${def_clean(data.idu_loading_req)}`;
-                
-                // FAR Bonus Matrix Array
-                document.getElementById('iduBonusSpecs').innerHTML = `Public Amenities: <b>${def_clean(data.idu_b_public)}</b> <br>Comprehensive Dev: <b>${def_clean(data.idu_b_comprehensive)}</b> | Early Phase: <b>${def_clean(data.idu_b_early)}</b> <br>Vacant Land Greening: <b>${def_clean(data.idu_b_green)}</b> | Aged Bldg Redevel: <b>${def_clean(data.idu_b_aged)}</b> <br>Corner Plaza: <b>${def_clean(data.idu_b_plaza)}</b> <br><span class="text-purple-700 font-bold">Aggregate Cap Limit: ${def_clean(data.idu_b_cap)}</span> | TDR Applicability: <u>${def_clean(data.idu_tdr_applicable)}</u>`;
-                
-                document.getElementById('iduDesignReview').innerText = def_clean(data.idu_design_review);
-                document.getElementById('iduExternalRegs').innerText = def_clean(data.idu_external_regs);
-                document.getElementById('iduSpecialNotes').innerText = def_clean(data.notes);
+                safeSetText('iduDesignReview', def_clean(data.idu_design_review));
+                safeSetText('iduExternalRegs', def_clean(data.idu_external_regs));
+                safeSetText('iduSpecialNotes', def_clean(data.notes));
             }
         }
 
