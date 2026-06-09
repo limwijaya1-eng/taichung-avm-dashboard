@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taichung Land Valuation AVM Dashboard</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <style>
         #map { height: 40vh; }
-        @media (min-width: 768px) {
-            #map { height: calc(100vh - 140px); }
-        }
+        @media (min-width: 768px) { #map { height: calc(100vh - 140px); } }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-screen flex flex-col">
@@ -22,19 +17,17 @@
     <header class="bg-slate-800 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <h1 class="text-lg md:text-xl font-bold tracking-wide text-center sm:text-left">Taichung City Land Valuation (AVM) Dashboard</h1>
         <div class="flex items-center gap-2 bg-white p-1 rounded shadow-inner text-gray-800 w-full sm:w-96">
-            <input type="text" id="addressInput" placeholder="Enter full address (e.g., 大明路478)" class="px-3 py-1 text-sm w-full focus:outline-none">
+            <input type="text" id="addressInput" placeholder="Enter address (e.g., 惠民路71號)" class="px-3 py-1 text-sm w-full focus:outline-none">
             <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded transition">Search</button>
         </div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        
         <div class="w-full md:w-2/3 p-3 md:p-4 shrink-0 md:shrink">
             <div id="map" class="w-full rounded-xl shadow-lg border border-gray-200"></div>
         </div>
 
         <div class="w-full md:w-1/3 p-3 md:p-4 overflow-y-visible md:overflow-y-auto flex flex-col gap-4">
-            
             <div class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200">
                 <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Location Information</h2>
                 <p id="resAddress" class="text-base md:text-lg font-bold text-slate-800">No Location Selected</p>
@@ -49,71 +42,40 @@
                     <div class="flex justify-between"><span class="font-medium">Zoning (Doc/原文):</span> <span id="resZoningDoc" class="text-purple-700 font-bold text-right">-</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-3 md:gap-4">
-                    <div class="bg-blue-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-blue-600 block">District (行政區)</span>
-                        <span id="resDistrict" class="text-sm md:text-base font-bold text-blue-900">-</span>
-                    </div>
-                    <div class="bg-purple-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-purple-600 block">Zoning Type (SHP)</span>
-                        <span id="resZoningType" class="text-sm md:text-base font-bold text-purple-900">-</span>
-                    </div>
-                    <div class="bg-emerald-50 p-2.5 md:p-3 rounded-lg col-span-2">
-                        <span class="text-xs text-emerald-600 block">BCR (建蔽率)</span>
-                        <span id="resBCR" class="text-lg md:text-xl font-black text-emerald-800">-</span>
-                    </div>
-                    <div class="bg-amber-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-amber-600 block">Base FAR (基準容積率)</span>
-                        <span id="resFarBase" class="text-base md:text-lg font-bold text-amber-800">-</span>
-                    </div>
-                    <div class="bg-red-50 p-2.5 md:p-3 rounded-lg">
-                        <span class="text-xs text-red-600 block">Max FAR (上限容積率) / Height</span>
-                        <span id="resFarMaxOrHeight" class="text-base md:text-lg font-bold text-red-800">-</span>
-                    </div>
+                    <div class="bg-blue-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-blue-600 block">District (行政區)</span><span id="resDistrict" class="text-sm md:text-base font-bold text-blue-900">-</span></div>
+                    <div class="bg-purple-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-purple-600 block">Zoning Type (SHP)</span><span id="resZoningType" class="text-sm md:text-base font-bold text-purple-900">-</span></div>
+                    <div class="bg-emerald-50 p-2.5 md:p-3 rounded-lg col-span-2"><span class="text-xs text-emerald-600 block">BCR (建蔽率)</span><span id="resBCR" class="text-lg md:text-xl font-black text-emerald-800">-</span></div>
+                    <div class="bg-amber-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-amber-600 block">Base FAR (基準容積率)</span><span id="resFarBase" class="text-base md:text-lg font-bold text-amber-800">-</span></div>
+                    <div class="bg-red-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-red-600 block">Max FAR Limit / Height</span><span id="resFarMaxOrHeight" class="text-base md:text-lg font-bold text-red-800">-</span></div>
                 </div>
             </div>
 
-            <div id="oldCityContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 flex flex-col gap-3">
-                <h2 class="text-xs font-bold uppercase text-blue-500 tracking-wider">Old City Building Metrics</h2>
-                <div class="text-xs text-slate-700 divide-y divide-gray-100">
-                    <div class="py-2 flex justify-between"><span class="font-medium">Height Ratio (高度比):</span> <span id="resHeightRatio">-</span></div>
-                    <div class="py-2 flex justify-between"><span class="font-medium">Front Yard Depth (前院深度):</span> <span id="resFrontYard">-</span></div>
-                    <div class="py-2 flex justify-between"><span class="font-medium">Rear Yard Depth (後院深度):</span> <span id="resRearYard">-</span></div>
-                    <div class="py-2 flex flex-col gap-1"><span class="font-medium">Notes (備註):</span> <p id="resNotes" class="text-slate-600 bg-gray-50 p-2 rounded text-justify text-[11px] leading-relaxed">-</p></div>
-                    <div class="py-2 flex flex-col gap-1"><span class="font-medium text-slate-800">Full Regulation Text (管制要點全文):</span> <div id="resFullText" class="text-slate-600 bg-slate-50 border border-gray-100 p-2 rounded text-justify max-h-40 overflow-y-auto text-[11px] coding-relaxed">-</div></div>
+            <div id="iduContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 flex flex-col gap-3">
+                <h2 class="text-xs font-bold uppercase text-emerald-600 tracking-wider">Integrated Development Unit Metrics</h2>
+                <div class="text-[11px] text-slate-700 divide-y divide-gray-100">
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category (分區類別):</span> <span id="iduCategory" class="font-bold text-slate-900">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Area (最小基地面積):</span> <span id="iduMinSite">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Width (基地最小面寬):</span> <span id="iduMinWidth">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Height Limit (層樓 / 簷高):</span> <span id="iduHeightLimits">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Setbacks (前院 / 後院 / 側院):</span> <span id="iduSetbacks" class="text-right font-medium text-blue-700">-</span></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Permitted Uses (允許使用項目):</span> <p id="iduPermitted" class="bg-gray-50 p-1.5 rounded text-slate-600 leading-normal text-justify">-</p></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Prohibited Uses (禁止使用項目):</span> <p id="iduProhibited" class="bg-red-50/50 p-1.5 rounded text-red-900 leading-normal text-justify">-</p></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Fence & Roof Design (圍牆/斜屋頂):</span> <p id="iduFenceRoof" class="bg-amber-50/50 p-1.5 rounded text-amber-900 leading-normal text-justify">-</p></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Open Space Greening & Parking (綠化/停車):</span> <p id="iduGreenParking" class="bg-emerald-50/30 p-1.5 rounded text-emerald-900 leading-normal text-justify">-</p></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">FAR Bonuses Structure (容積獎勵與移轉):</span> <p id="iduBonuses" class="bg-purple-50/50 p-1.5 rounded text-purple-900 leading-normal text-justify">-</p></div>
+                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Special Provision Notes (特殊條款備注):</span> <p id="iduSpecialNotes" class="bg-slate-50 p-1.5 rounded text-slate-600 leading-normal text-justify">-</p></div>
                 </div>
             </div>
 
             <div id="newMunicipalContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 hidden flex flex-col gap-3">
                 <h2 class="text-xs font-bold uppercase text-purple-600 tracking-wider">New Municipal Center Special Matrix</h2>
                 <div class="text-xs text-slate-700 divide-y divide-gray-100">
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category (分區類別):</span> <span id="nmcCategory" class="font-bold text-slate-900">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Block ID (所屬街廓):</span> <span id="nmcBlock" class="text-slate-600">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Area (最小基地規模):</span> <span id="nmcMinSite" class="text-slate-600">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Base Bonus Ceiling (基本獎勵上限):</span> <span id="nmcBaseBonus" class="text-slate-600">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Design Bonus Ceiling (審議獎勵上限):</span> <span id="nmcDesignBonus" class="text-slate-600">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category:</span> <span id="nmcCategory" class="font-bold">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Block ID (街廓):</span> <span id="nmcBlock">-</span></div>
+                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Scale:</span> <span id="nmcMinSite">-</span></div>
                 </div>
-
-                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-2">Use Allowance Matrix (第一至十九組)</h3>
-                <div id="useGroupGrid" class="grid grid-cols-4 gap-1 text-[10px] text-center font-bold">
-                    </div>
-
-                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-2">Urban Design Constraints</h3>
-                <div class="text-[11px] text-slate-600 space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-gray-100">
-                    <div><span class="font-medium text-slate-800">Signage Max Height (廣告高度):</span> <span id="nmcSignHeight">-</span></div>
-                    <div><span class="font-medium text-slate-800">Signage Projection (廣告突出):</span> <span id="nmcSignProj">-</span></div>
-                    <div><span class="font-medium text-slate-800">Neon Restriction (霓虹燈限制):</span> <span id="nmcNeonRestrict">-</span></div>
-                    <div><span class="font-medium text-slate-800">Residential Parking (住宅停車):</span> <p id="nmcParkingRes" class="text-[10px] text-slate-500 bg-white p-1 rounded border border-gray-100 mt-0.5 text-justify">-</p></div>
-                    <div><span class="font-medium text-slate-800">Non-Res Parking (非住宅停車):</span> <p id="nmcParkingNonRes" class="text-[10px] text-slate-500 bg-white p-1 rounded border border-gray-100 mt-0.5 text-justify">-</p></div>
-                    <div><span class="font-medium text-slate-800">Separation - Front/Rear (前後間隔):</span> <span id="nmcSepFrontRear">-</span></div>
-                    <div><span class="font-medium text-slate-800">Separation - Side Ends (兩端間隔):</span> <span id="nmcSepSide">-</span></div>
-                    <div><span class="font-medium text-slate-800">Open Space Form (開放空間形式):</span> <span id="nmcOpenSpaceType">-</span></div>
-                    <div><span class="font-medium text-slate-800">Open Space Width (留設寬度):</span> <span id="nmcOpenSpaceWidth">-</span></div>
-                    <div><span class="font-medium text-slate-800">Green Coverage (空地綠覆率):</span> <span id="nmcGreenPct">-</span></div>
-                    <div><span class="font-medium text-slate-800">Rooftop Greening (屋頂綠化):</span> <span id="nmcRooftopGreen">-</span></div>
-                    <div><span class="font-medium text-slate-800">BCR to 70% Conditions (調至70條件):</span> <p id="nmcBcr70Cond" class="text-[10px] text-slate-500 bg-white p-1 rounded border border-gray-100 mt-0.5 text-justify">-</p></div>
-                    <div><span class="font-medium text-slate-800">Elevated Corridor (架空走廊):</span> <span id="nmcCorridorReq">-</span></div>
-                    <div><span class="font-medium text-slate-800">Special Provision Notes (特殊備註):</span> <p id="nmcSpecialNotes" class="text-[10px] text-slate-500 bg-amber-50 text-amber-900 p-1 rounded border border-amber-100 mt-0.5 text-justify leading-normal">-</p></div>
-                </div>
+                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-1">Use Allowance Matrix (G1-G19)</h3>
+                <div id="useGroupGrid" class="grid grid-cols-4 gap-1 text-[10px] text-center font-bold"></div>
             </div>
 
         </div>
@@ -121,157 +83,94 @@
 
     <script>
         const API_BASE_URL = "https://evacuee-subzero-annuity.ngrok-free.dev";
-
-        const map = L.map('map', {
-            tap: !L.Browser.mobile,
-            dragging: !L.Browser.mobile || L.Browser.retina
-        }).setView([24.1635, 120.6402], 15); // Default centered on Xitun / NMC area
-        
-        if (L.Browser.mobile) { map.dragging.enable(); }
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
+        const map = L.map('map', { tap: !L.Browser.mobile, dragging: !L.Browser.mobile || L.Browser.retina }).setView([24.1635, 120.6402], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         let currentMarker = null;
 
-        // Automatically pre-render the 19 G-Matrix blocks inside the UI
         const gridBox = document.getElementById("useGroupGrid");
         for (let i = 1; i <= 19; i++) {
-            gridBox.innerHTML += `
-                <div class="border border-gray-200 rounded p-1 bg-gray-50">
-                    <span class="text-gray-400 block text-[8px]">G${i}</span>
-                    <span id="nmcG${i}" class="text-slate-800 text-[11px] block">-</span>
-                </div>`;
+            gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-400 block text-[7px]">G${i}</span><span id="nmcG${i}" class="text-slate-800 text-[10px] block">-</span></div>`;
         }
 
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
-            if (!fullAddress) {
-                alert("Please enter an address to search!");
-                return;
-            }
+            if (!fullAddress) return alert("Enter address!");
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, {
-                    method: "GET",
-                    headers: { "ngrok-skip-browser-warning": "true" }
-                });
-                if (!response.ok) throw new Error("Address not found or out of urban planning range.");
+                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                if (!response.ok) throw new Error("Address out of urban planning range.");
                 const data = await response.json();
                 updateDashboardUI(data);
                 updateMapMarker(data.wgs84_latitude, data.wgs84_longitude, data.full_address);
-            } catch (error) {
-                alert(error.message);
-            }
+            } catch (error) { alert(error.message); }
         }
 
         map.on('click', async function(e) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            updateMapMarker(lat, lng, `Selected Coordinate Point`);
+            const lat = e.latlng.lat; const lng = e.latlng.lng;
+            updateMapMarker(lat, lng, `Query Point`);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
-                    method: "GET",
-                    headers: { "ngrok-skip-browser-warning": "true" }
-                });
-                if (!response.ok) throw new Error("Failed to fetch spatial database attributes.");
+                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, { headers: { "ngrok-skip-browser-warning": "true" } });
                 const data = await response.json();
-                
-                // Polyfill missing geocode tags on direct coordinate clicks
-                data.full_address = `Map Query Point (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-                data.wgs84_latitude = lat;
-                data.wgs84_longitude = lng;
-                
+                data.full_address = `Map Query Point (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                data.wgs84_latitude = lat; data.wgs84_longitude = lng;
                 updateDashboardUI(data);
-            } catch (error) {
-                console.error(error);
-            }
+            } catch (error) { console.error(error); }
         });
 
         function updateDashboardUI(data) {
-            // Render baseline attributes
             document.getElementById('resAddress').innerText = data.full_address;
             document.getElementById('resCoords').innerText = `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`;
-            document.getElementById('resMasterPlan').innerText = data.master_plan || '-';
-            document.getElementById('resDetailedPlan').innerText = data.detailed_plan || '-';
-            document.getElementById('resDistrict').innerText = data.district || '-';
-            document.getElementById('resZoningType').innerText = data.zoning_type || '-';
-            document.getElementById('resZoningDoc').innerText = data.zoning_doc || '-';
-            
-            document.getElementById('resBCR').innerText = data.bcr_pct === "Data Not Available" ? "Data Not Available" : data.bcr_pct + "%";
-            document.getElementById('resFarBase').innerText = data.far_base_pct === "Data Not Available" ? "Data Not Available" : data.far_base_pct + "%";
+            document.getElementById('resMasterPlan').innerText = data.master_plan;
+            document.getElementById('resDetailedPlan').innerText = data.detailed_plan;
+            document.getElementById('resDistrict').innerText = data.district;
+            document.getElementById('resZoningType').innerText = data.zoning_type;
+            document.getElementById('resZoningDoc').innerText = data.zoning_doc;
+            document.getElementById('resBCR').innerText = data.bcr_pct === "Data Not Available" ? "-" : data.bcr_pct + "%";
+            document.getElementById('resFarBase').innerText = data.far_base_pct === "Data Not Available" ? "-" : data.far_base_pct + "%";
 
             const detailedPlanStr = data.detailed_plan || '';
 
-            // DYNAMIC SWITCH LOGIC BOX
             if (detailedPlanStr.includes("新市政中心")) {
-                // Show NMC layout panel, hide Old City layout panel
                 document.getElementById('newMunicipalContainer').classList.remove('hidden');
-                document.getElementById('oldCityContainer').classList.add('hidden');
-                
-                // Populate Max FAR card field using Building Height description fallback
-                document.getElementById('resFarMaxOrHeight').innerText = "Height Ratio: " + (data.height_ratio || '-');
+                document.getElementById('iduContainer').classList.add('hidden');
+                document.getElementById('resFarMaxOrHeight').innerText = "Ratio: " + data.height_ratio;
 
-                // Bind New Municipal Center Fields
                 document.getElementById('nmcCategory').innerText = data.nmc_category;
                 document.getElementById('nmcBlock').innerText = data.nmc_block;
-                document.getElementById('nmcMinSite').innerText = data.nmc_min_site === "Data Not Available" ? "-" : data.nmc_min_site + " ㎡";
-                document.getElementById('nmcBaseBonus').innerText = data.nmc_base_bonus;
-                document.getElementById('nmcDesignBonus').innerText = data.nmc_design_bonus === "Data Not Available" ? "-" : data.nmc_design_bonus + "%";
+                document.getElementById('nmcMinSite').innerText = data.nmc_min_site;
                 
-                // Populate 19 Group Grid blocks loops
                 for (let i = 1; i <= 19; i++) {
                     const cellVal = data[`nmc_g${i}`];
                     const targetCell = document.getElementById(`nmcG${i}`);
                     targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available") ? "-" : cellVal;
-                    
-                    // Highlight authorized active modules colorfully
-                    if (cellVal === "O" || cellVal === "G") {
-                        targetCell.className = "text-emerald-600 text-[11px] block font-black bg-emerald-50 rounded";
-                    } else if (cellVal === "B" || cellVal === "C" || cellVal === "A") {
-                        targetCell.className = "text-amber-600 text-[11px] block font-black bg-amber-50 rounded";
-                    } else {
-                        targetCell.className = "text-slate-300 text-[11px] block font-normal";
-                    }
+                    if (cellVal === "O" || cellVal === "G") targetCell.className = "text-emerald-600 bg-emerald-50 font-black rounded text-[10px]";
+                    else if (cellVal === "B" || cellVal === "C" || cellVal === "A") targetCell.className = "text-amber-600 bg-amber-50 font-black rounded text-[10px]";
+                    else targetCell.className = "text-slate-300 font-normal text-[10px]";
                 }
-
-                // Bind Extended Urban Design parameters safely
-                document.getElementById('nmcSignHeight').innerText = data.nmc_sign_height === "Data Not Available" ? "-" : data.nmc_sign_height + " m";
-                document.getElementById('nmcSignProj').innerText = data.nmc_sign_proj === "Data Not Available" ? "-" : data.nmc_sign_proj + " m";
-                document.getElementById('nmcNeonRestrict').innerText = data.nmc_neon_restrict;
-                document.getElementById('nmcParkingRes').innerText = data.nmc_parking_res;
-                document.getElementById('nmcParkingNonRes').innerText = data.nmc_parking_nonres;
-                document.getElementById('nmcSepFrontRear').innerText = data.nmc_sep_front_rear === "Data Not Available" ? "-" : data.nmc_sep_front_rear + " m";
-                document.getElementById('nmcSepSide').innerText = data.nmc_sep_side === "Data Not Available" ? "-" : data.nmc_sep_side + " m";
-                document.getElementById('nmcOpenSpaceType').innerText = data.nmc_open_space_type;
-                document.getElementById('nmcOpenSpaceWidth').innerText = data.nmc_open_space_width === "Data Not Available" ? "-" : data.nmc_open_space_width + " m";
-                document.getElementById('nmcGreenPct').innerText = data.nmc_green_pct === "Data Not Available" ? "-" : data.nmc_green_pct + "%";
-                document.getElementById('nmcRooftopGreen').innerText = data.nmc_rooftop_green;
-                document.getElementById('nmcBcr70Cond').innerText = data.nmc_bcr_70_cond;
-                document.getElementById('nmcCorridorReq').innerText = data.nmc_corridor_req;
-                document.getElementById('nmcSpecialNotes').innerText = data.notes;
-
             } else {
-                // Show Old City layout panel, hide NMC layout panel
-                document.getElementById('oldCityContainer').classList.remove('hidden');
+                document.getElementById('iduContainer').classList.remove('hidden');
                 document.getElementById('newMunicipalContainer').classList.add('hidden');
-                
-                // Populate Max FAR card field using traditional Max FAR threshold numbers
-                document.getElementById('resFarMaxOrHeight').innerText = data.far_max_pct === "Data Not Available" ? "Data Not Available" : data.far_max_pct + "%";
+                document.getElementById('resFarMaxOrHeight').innerText = data.far_max_pct === "Data Not Available" ? "-" : data.far_max_pct + "%";
 
-                // Bind Old City Fields
-                document.getElementById('resHeightRatio').innerText = data.height_ratio || '-';
-                document.getElementById('resFrontYard').innerText = data.front_yard === "Data Not Available" ? "Data Not Available" : data.front_yard + " M";
-                document.getElementById('resRearYard').innerText = data.rear_yard === "Data Not Available" ? "Data Not Available" : data.rear_yard + " M";
-                document.getElementById('resNotes').innerText = data.notes || '-';
-                document.getElementById('resFullText').innerText = data.full_text || '-';
+                // Bind IDU Framework metrics
+                document.getElementById('iduCategory').innerText = data.nmc_category;
+                document.getElementById('iduMinSite').innerText = data.idu_min_site + " ㎡";
+                document.getElementById('iduMinWidth').innerText = data.idu_min_width + " m";
+                document.getElementById('iduHeightLimits').innerText = `Max Floors: ${data.idu_height_floors} | Eave: ${data.idu_height_eave}`;
+                document.getElementById('iduSetbacks').innerText = `Front: ${data.idu_front_yard}M / Rear: ${data.idu_rear_yard}M / Side: ${data.idu_side_yard}M`;
+                document.getElementById('iduPermitted').innerText = data.idu_permitted_uses;
+                document.getElementById('iduProhibited').innerText = data.idu_prohibited_uses;
+                
+                document.getElementById('iduFenceRoof').innerHTML = `<b>Pagar Maks:</b> ${data.idu_fence_max}M (Dinding Solid max ${data.idu_fence_solid}M, Transparansi Min ${data.idu_fence_trans}%)<br><b>Syarat Desain:</b> ${data.idu_fence_req}<br><b>Atap Miring:</b> ${data.idu_roof_trigger}`;
+                document.getElementById('iduGreenParking').innerHTML = `<b>Rasio RTH:</b> ${data.idu_green_space_pct}% | <b>Kepadatan Pohon:</b> ${data.idu_tree_density}<br><b>Standar Parkir:</b> ${data.idu_parking_std}`;
+                document.getElementById('iduBonuses').innerHTML = `<b>Bonus Publik:</b> ${data.idu_b_public} | <b>Bonus Blok/Komp:</b> ${data.idu_b_comprehensive}<br><b>Batas Total Akumulasi Bonus:</b> ${data.idu_b_cap} | <b>Transfer Emisi/TDR:</b> ${data.idu_tdr_applicable}`;
+                document.getElementById('iduSpecialNotes').innerText = data.notes;
             }
         }
 
         function updateMapMarker(lat, lng, popupText) {
             if (currentMarker) { map.removeLayer(currentMarker); }
             currentMarker = L.marker([lat, lng]).addTo(map).bindPopup(popupText).openPopup();
-            map.flyTo([lat, lng], 17);
+            map.flyTo([lat, lng], 16);
         }
     </script>
 </body>
