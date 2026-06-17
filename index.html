@@ -93,7 +93,8 @@
     <div id="imageModal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
         <button onclick="closeModal()" class="absolute top-5 right-5 text-white text-4xl font-bold cursor-pointer hover:text-gray-300">&times;</button>
         <div class="max-w-4xl max-h-[85vh] bg-white p-2 rounded-lg shadow-2xl relative">
-            <img id="modalImg" src="" alt="Taichung Urban Plan Document Schema" class="max-w-full max-h-[80vh] rounded object-contain border border-gray-100">
+            <div id="modalLoader" class="hidden text-center py-8 font-bold text-slate-700 text-sm">🔄 Downloading Schema Layout Securely...</div>
+            <img id="modalImg" src="" alt="Taichung Urban Plan Document Schema" class="max-w-full max-h-[80vh] rounded object-contain border border-gray-100 hidden">
             <p id="modalCaption" class="text-center text-xs font-bold text-slate-700 mt-2 py-1 bg-slate-50 rounded">-</p>
         </div>
     </div>
@@ -145,17 +146,50 @@
             }
         }
 
-        // REVISI UTAMA: Fungsi Pengendali Modal untuk Membuka & Menutup Gambar Skema
-        function openModal(imgFileName, captionText) {
+        // REVISI UTAMA: Fungsi Pengendali Berbasis Fetch + Blob untuk Melewati Peringatan Browser Ngrok
+        async function openModal(imgFileName, captionText) {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImg');
             const modalCaption = document.getElementById('modalCaption');
+            const loader = document.getElementById('modalLoader');
             
-            if (modal && modalImg && modalCaption) {
-                // Mengambil berkas gambar langsung dari folder static backend Anda
-                modalImg.src = `${API_BASE_URL}/static/images/${imgFileName}`;
-                modalCaption.innerText = captionText;
+            if (modal && modalImg && modalCaption && loader) {
+                const targetUrl = `${API_BASE_URL}/static/images/${imgFileName}`;
+                
+                // Reset tampilan modal dan munculkan loading state
+                modalImg.classList.add('hidden');
+                loader.classList.remove('hidden');
+                modalCaption.innerText = "Loading...";
                 modal.classList.remove('hidden');
+                
+                try {
+                    // Inject Header khusus untuk mengelabui proteksi anti-abuse Ngrok gratisan
+                    const response = await fetch(targetUrl, {
+                        headers: {
+                            "ngrok-skip-browser-warning": "true"
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error("Aset gambar statis tidak merespons.");
+                    
+                    // Konversi aliran data biner gambar menjadi objek URL lokal aman
+                    const imageBlob = await response.blob();
+                    const secureObjectURL = URL.createObjectURL(imageBlob);
+                    
+                    // Suntikkan URL biner lokal ke elemen gambar
+                    modalImg.src = secureObjectURL;
+                    modalCaption.innerText = captionText;
+                    
+                    // Sembunyikan loader dan tampilkan gambar skema asli secara instan
+                    loader.classList.add('hidden');
+                    modalImg.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error("Ngrok Bypass Error:", error);
+                    loader.classList.add('hidden');
+                    modalCaption.innerText = "Error loading schema graphic asset.";
+                    alert("Gagal memproses bypass media statis Ngrok.");
+                }
             }
         }
 
@@ -186,7 +220,6 @@
                 safeSetText('nmcBlock', def_clean(data.nmc_block));
                 safeSetText('nmcMinSite', def_clean(data.nmc_min_site));
 
-                // REVISI UTAMA: Interseptor Teks Hukum Baru untuk Disulap Menjadi Link Klik Gambar Modal
                 const rawOpenSpace = def_clean(data.nmc_open_space_type);
                 if (rawOpenSpace.includes("圖七")) {
                     safeSetText('nmcOpenSpaceForm', `<span onclick="openModal('figure7.jpg', '${rawOpenSpace}')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 transition flex items-center gap-1">🖼️ ${rawOpenSpace}</span>`, true);
