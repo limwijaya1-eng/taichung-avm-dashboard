@@ -11,7 +11,6 @@
         #map { height: 40vh; }
         @media (min-width: 768px) { #map { height: calc(100vh - 140px); } }
         
-        /* SOLUSI MUTLAK TRUNCATE: Transisi ukuran lebar dasar agar overflow scroll terdeteksi */
         #modalImg { 
             transition: width 0.2s ease-out; 
             max-width: none; 
@@ -106,9 +105,9 @@
 
         <div class="w-full max-w-xl shrink-0 flex flex-col items-center gap-2 text-white pb-2">
             <div class="flex items-center gap-4 bg-slate-800 px-5 py-2 rounded-full border border-slate-700 shadow-xl">
-                <button onclick="zoomManual(0.2)" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg cursor-pointer transition">➕ Perbesar</button>
+                <button onclick="zoomManual(0.2)" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg cursor-pointer transition">➕ Zoom In</button>
                 <span id="zoomIndicator" class="font-mono text-sm font-bold text-emerald-400 min-w-[50px] text-center">100%</span>
-                <button onclick="zoomManual(-0.2)" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg cursor-pointer transition">➖ Perkecil</button>
+                <button onclick="zoomManual(-0.2)" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg cursor-pointer transition">➖ Zoom Out</button>
                 <button onclick="resetZoom()" class="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-lg cursor-pointer transition">Reset</button>
             </div>
             <p id="modalCaption" class="text-center text-xs font-semibold text-slate-300 py-1 px-4 bg-slate-950/80 rounded-md border border-slate-800 max-w-full leading-relaxed">-</p>
@@ -121,11 +120,9 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         let currentMarker = null;
 
-        // VARIABEL MANIPULASI UKURAN GAMBAR ALAMI
         let currentScale = 1.0;
         let baseWidth = 0; 
 
-        // INITIALIZATION WARNA: Setel awal teks indikator ke hitam pekat (text-black font-black)
         const gridBox = document.getElementById("useGroupGrid");
         if (gridBox) {
             for (let i = 1; i <= 19; i++) {
@@ -167,22 +164,19 @@
             }
         }
 
-        // FUNGSI MODAL BARU: Mendeteksi rasio asli gambar saat dimuat awal
         function openModal(imgFileName, captionText) {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImg');
             const modalCaption = document.getElementById('modalCaption');
             
             if (modal && modalImg && modalCaption) {
-                modalImg.style.width = 'auto'; // Reset ukuran lama
+                modalImg.style.width = 'auto'; 
                 modalImg.src = `images/${imgFileName}`;
                 modalCaption.innerText = captionText;
                 modal.classList.remove('hidden');
                 
-                // Ambil ukuran natural lebar gambar setelah selesai dimuat browser
                 modalImg.onload = function() {
                     const container = document.getElementById('imgContainer');
-                    // Batasi lebar awal maksimal sesuai ukuran kotak pembungkus
                     baseWidth = Math.min(modalImg.naturalWidth, container.clientWidth - 40);
                     currentScale = 1.0;
                     applyZoom();
@@ -195,7 +189,6 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        // Terapkan perubahan dimensi lebar asli secara linear agar memicu scrollbar otomatis
         function applyZoom() {
             const modalImg = document.getElementById('modalImg');
             const indicator = document.getElementById('zoomIndicator');
@@ -220,7 +213,6 @@
             if (container) { container.scrollTop = 0; container.scrollLeft = 0; }
         }
 
-        // Event listener pendeteksi gerakan Scroll Wheel mouse di area gambar
         document.getElementById('imgContainer')?.addEventListener('wheel', function(e) {
             e.preventDefault();
             const direction = e.deltaY < 0 ? 1 : -1;
@@ -269,13 +261,13 @@
                     if (targetCell) {
                         targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
                         
-                        // PERBAIKAN TOTAL WARNA: Memastikan warna teks SELALU hitam pekat (text-black font-black) terlepas dari nilainya
+                        // REVISI WARNA DATA: Menghapus class text-slate-400 pada data kosong agar semuanya seragam menggunakan text-black font-black
                         if (cellVal === "O" || cellVal === "G") {
                             targetCell.className = "text-black font-black bg-emerald-100/80 rounded border border-emerald-300 text-[10px] block w-full py-0.5";
                         } else if (cellVal === "B" || cellVal === "C" || cellVal === "A") {
                             targetCell.className = "text-black font-black bg-amber-100/80 rounded border border-amber-300 text-[10px] block w-full py-0.5";
                         } else {
-                            targetCell.className = "text-black font-normal bg-gray-100/50 text-slate-400 text-[10px] block w-full py-0.5";
+                            targetCell.className = "text-black font-black bg-gray-100/70 text-[10px] block w-full py-0.5 rounded border border-gray-200";
                         }
                     }
                 }
@@ -307,7 +299,6 @@
             }
         }
 
-        // Sinkronisasi Marker Peta Spasial
         function updateMapMarker(lat, lng, popupText) {
             if (currentMarker) { map.removeLayer(currentMarker); }
             currentMarker = L.marker([lat, lng]).addTo(map).bindPopup(popupText).openPopup();
