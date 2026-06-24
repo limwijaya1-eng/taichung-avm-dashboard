@@ -10,6 +10,8 @@
     <style>
         #map { height: 40vh; }
         @media (min-width: 768px) { #map { height: calc(100vh - 140px); } }
+        /* Transisi halus saat gambar di-zoom */
+        #modalImg { transition: transform 0.15s ease-out; transform-origin: center center; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-screen flex flex-col relative">
@@ -90,11 +92,21 @@
         </div>
     </main>
 
-    <div id="imageModal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
-        <button onclick="closeModal()" class="absolute top-5 right-5 text-white text-4xl font-bold cursor-pointer hover:text-gray-300">&times;</button>
-        <div class="max-w-4xl max-h-[85vh] bg-white p-2 rounded-lg shadow-2xl relative">
-            <img id="modalImg" src="" alt="Taichung Urban Plan Document Schema" class="max-w-full max-h-[80vh] rounded object-contain border border-gray-100">
-            <p id="modalCaption" class="text-center text-xs font-bold text-slate-700 mt-2 py-1 bg-slate-50 rounded">-</p>
+    <div id="imageModal" class="hidden fixed inset-0 bg-black/85 z-[9999] flex flex-col items-center justify-center p-4">
+        <button onclick="closeModal()" class="absolute top-5 right-5 text-white text-4xl font-bold cursor-pointer hover:text-gray-300 z-50">&times;</button>
+        
+        <div id="imgContainer" class="w-full max-w-4xl max-h-[75vh] bg-white p-2 rounded-lg shadow-2xl relative overflow-auto flex items-center justify-center cursor-move select-none">
+            <img id="modalImg" src="" alt="Taichung Urban Plan Document Schema" class="max-w-full max-h-[70vh] rounded object-contain border border-gray-100">
+        </div>
+
+        <div class="mt-4 flex flex-col items-center gap-2 text-white w-full max-w-xl">
+            <div class="flex items-center gap-4 bg-slate-800/80 px-4 py-1.5 rounded-full border border-slate-700 text-sm">
+                <button onclick="zoomManual(0.2)" class="px-3 py-0.5 bg-slate-700 hover:bg-slate-600 rounded font-black cursor-pointer transition">➕ Zoom In</button>
+                <span id="zoomIndicator" class="font-mono text-xs text-emerald-400">100%</span>
+                <button onclick="zoomManual(-0.2)" class="px-3 py-0.5 bg-slate-700 hover:bg-slate-600 rounded font-black cursor-pointer transition">➖ Zoom Out</button>
+                <button onclick="resetZoom()" class="px-2 py-0.5 bg-red-800 hover:bg-red-700 rounded text-xs cursor-pointer transition">Reset</button>
+            </div>
+            <p id="modalCaption" class="text-center text-xs font-bold text-slate-300 py-1 px-4 bg-slate-900/60 rounded-lg max-w-full">-</p>
         </div>
     </div>
 
@@ -104,10 +116,16 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         let currentMarker = null;
 
+        // VARIABEL ZOOM GLOBAL UNTUK POP-UP SKEMA HUKUM ZONASI
+        let currentScale = 1.0;
+        const MIN_SCALE = 0.5;
+        const MAX_SCALE = 4.0;
+
+        // REVISI WARNA: Membuat teks sel kode diubah ke warna Hitam Pekat (text-black font-extrabold)
         const gridBox = document.getElementById("useGroupGrid");
         if (gridBox) {
             for (let i = 1; i <= 19; i++) {
-                gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-400 block text-[7px]">G${i}</span><span id="nmcG${i}" class="text-slate-800 text-[10px] block">-</span></div>`;
+                gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-400 block text-[7px]">G${i}</span><span id="nmcG${i}" class="text-black font-extrabold text-[10px] block">-</span></div>`;
             }
         }
 
@@ -145,17 +163,17 @@
             }
         }
 
-        // SOLUSI MUTLAK: Mengambil gambar langsung dari domain host GitHub Pages (100% Bypass Ngrok)
+        // REVISI UTAMA: Fungsi Modal Gambar dengan Akselerasi Zooming Dinamis
         function openModal(imgFileName, captionText) {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImg');
             const modalCaption = document.getElementById('modalCaption');
             
             if (modal && modalImg && modalCaption) {
-                // Membaca jalur lokal direktori frontend (images/figure7.jpg)
                 modalImg.src = `images/${imgFileName}`;
                 modalCaption.innerText = captionText;
                 modal.classList.remove('hidden');
+                resetZoom(); // Reset pembesaran ke 100% setiap kali modal baru dibuka
             }
         }
 
@@ -163,6 +181,37 @@
             const modal = document.getElementById('imageModal');
             if (modal) modal.classList.add('hidden');
         }
+
+        // Logika Pengendali Skala Pembesaran Gambar (Transform Zoom)
+        function applyZoom() {
+            const modalImg = document.getElementById('modalImg');
+            const indicator = document.getElementById('zoomIndicator');
+            if (modalImg && indicator) {
+                modalImg.style.transform = `scale(${currentScale})`;
+                indicator.innerText = `${Math.round(currentScale * 100)}%`;
+            }
+        }
+
+        function zoomManual(amount) {
+            currentScale += amount;
+            if (currentScale < MIN_SCALE) currentScale = MIN_SCALE;
+            if (currentScale > MAX_SCALE) currentScale = MAX_SCALE;
+            applyZoom();
+        }
+
+        function resetZoom() {
+            currentScale = 1.0;
+            applyZoom();
+            const container = document.getElementById('imgContainer');
+            if (container) { container.scrollTop = 0; container.scrollLeft = 0; }
+        }
+
+        // Integrasi deteksi pergerakan Scroll Roda Mouse (Wheel Scroll Listener) pada Modal Gambar
+        document.getElementById('imgContainer')?.addEventListener('wheel', function(e) {
+            e.preventDefault(); // Mencegah halaman utama ikut ter-scroll saat melakukan zoom
+            const direction = e.deltaY < 0 ? 1 : -1;
+            zoomManual(direction * 0.15);
+        }, { passive: false });
 
         function updateDashboardUI(data) {
             safeSetText('resAddress', def_clean(data.full_address));
@@ -205,8 +254,10 @@
                     const targetCell = document.getElementById(`nmcG${i}`);
                     if (targetCell) {
                         targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
-                        if (cellVal === "O" || cellVal === "G") targetCell.className = "text-emerald-600 bg-emerald-50 font-black rounded text-[10px]";
-                        else if (cellVal === "B" || cellVal === "C" || cellVal === "A") targetCell.className = "text-amber-600 bg-amber-50 font-black rounded text-[10px]";
+                        
+                        // REVISI WARNA: Penambahan kelas warna teks hitam yang tajam (text-black font-extrabold)
+                        if (cellVal === "O" || cellVal === "G") targetCell.className = "text-black font-extrabold bg-emerald-50 rounded text-[10px]";
+                        else if (cellVal === "B" || cellVal === "C" || cellVal === "A") targetCell.className = "text-black font-extrabold bg-amber-50 rounded text-[10px]";
                         else targetCell.className = "text-slate-300 font-normal text-[10px]";
                     }
                 }
