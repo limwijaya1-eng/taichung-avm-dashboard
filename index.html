@@ -90,7 +90,7 @@
                     <div class="py-2 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Skywalk / Corridor Request (架空走廊要求):</span> <p id="nmcCorridorReq" class="bg-blue-50/50 p-2 rounded text-blue-900 leading-normal text-justify font-medium">-</p></div>
                 </div>
                 <h3 class="text-[11px] font-bold text-black uppercase tracking-tight mt-2">Use Allowance Matrix (G1-G19)</h3>
-                <div id="useGroupGrid" class="grid grid-cols-4 gap-1 text-[10px] text-center font-bold"></div>
+                <div id="useGroupGrid" class="flex flex-col gap-1.5 text-left"></div>
             </div>
 
         </div>
@@ -123,10 +123,38 @@
         let currentScale = 1.0;
         let baseWidth = 0; 
 
+        // 定義 G1 到 G19 完整的中文字義對照表
+        const gNames = {
+            1: "第一組（獨門獨院住宅）",
+            2: "第二組（集合住宅）",
+            3: "第三組（教育設施）",
+            4: "第四組（社區遊憩設施）",
+            5: "第五組（醫療保健及福利設施）",
+            6: "第六組（電力、郵政及通訊設施）",
+            7: "第七組（行政機關）",
+            8: "第八組（文化及社教設施）",
+            9: "第九組（零售業）",
+            10: "第十組（日常服務業）",
+            11: "第十一組（一般服務業）",
+            12: "第十二組（辦公事務所及工商服務業）",
+            13: "第十三組（金融、保險及不動產業）",
+            14: "第十四組（休閒服務業）",
+            15: "第十五組（運輸服務業）",
+            16: "第十六組（旅館業）",
+            17: "第十七組（貿易展示設施）",
+            18: "第十八組（批發業）",
+            19: "第十九組（娛樂服務業）"
+        };
+
+        // REVISI SCRIPT INITIALIZATION: 生成橫向通欄排列，文字數據皆強制黑色 (text-black font-black)
         const gridBox = document.getElementById("useGroupGrid");
         if (gridBox) {
             for (let i = 1; i <= 19; i++) {
-                gridBox.innerHTML += `<div class="border border-gray-200 rounded p-0.5 bg-gray-50"><span class="text-gray-500 block text-[7px] font-bold">G${i}</span><span id="nmcG${i}" class="text-black font-black text-[10px] block">-</span></div>`;
+                gridBox.innerHTML += `
+                    <div class="flex items-center justify-between border border-gray-200 rounded p-1.5 bg-gray-50 gap-2">
+                        <span class="text-black font-black text-[11px] block text-left">G${i} ${gNames[i]}</span>
+                        <span id="nmcG${i}" class="text-black font-black text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded border border-gray-200 bg-white">-</span>
+                    </div>`;
             }
         }
 
@@ -261,13 +289,13 @@
                     if (targetCell) {
                         targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
                         
-                        // REVISI WARNA DATA: Menghapus class text-slate-400 pada data kosong agar semuanya seragam menggunakan text-black font-black
+                        // REVISI LOGIKA WARNA DATA: 完全保持強對比高飽和度黑字 (text-black font-black)，僅背景色區分狀態
                         if (cellVal === "O" || cellVal === "G") {
-                            targetCell.className = "text-black font-black bg-emerald-100/80 rounded border border-emerald-300 text-[10px] block w-full py-0.5";
+                            targetCell.className = "text-black font-black bg-emerald-100 border border-emerald-300 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded shadow-sm";
                         } else if (cellVal === "B" || cellVal === "C" || cellVal === "A") {
-                            targetCell.className = "text-black font-black bg-amber-100/80 rounded border border-amber-300 text-[10px] block w-full py-0.5";
+                            targetCell.className = "text-black font-black bg-amber-100 border border-amber-300 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded shadow-sm";
                         } else {
-                            targetCell.className = "text-black font-black bg-gray-100/70 text-[10px] block w-full py-0.5 rounded border border-gray-200";
+                            targetCell.className = "text-black font-black bg-gray-100 border border-gray-200 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded";
                         }
                     }
                 }
