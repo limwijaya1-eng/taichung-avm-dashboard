@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,152 +8,251 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { height: 40vh; }
-        @media (min-width: 768px) { #map { height: calc(100vh - 140px); } }
+        #map { height: 42vh; }
+        @media (min-width: 768px) { #map { height: calc(100vh - 120px); } }
         #modalImg { transition: width 0.2s ease-out; max-width: none; max-height: none; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans h-screen flex flex-col relative">
+<body class="bg-slate-100 font-sans h-screen flex flex-col relative text-slate-800">
 
-    <header class="bg-slate-800 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-        <h1 class="text-lg md:text-xl font-bold tracking-wide text-center sm:text-left">Taichung City Land Valuation (AVM) Dashboard</h1>
-        <div class="flex items-center gap-2 bg-white p-1 rounded shadow-inner text-gray-800 w-full sm:w-96">
-            <input type="text" id="addressInput" placeholder="Enter address (e.g., 惠民路71號)" class="px-3 py-1 text-sm w-full focus:outline-none">
-            <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded transition cursor-pointer">Search</button>
+    <!-- Header -->
+    <header class="bg-slate-900 text-white p-3.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🏛️</span>
+            <h1 class="text-base sm:text-lg font-bold tracking-wide">Taichung Land Valuation & Zoning Regulations Dashboard</h1>
+        </div>
+        <div class="flex items-center gap-2 bg-white p-1 rounded-lg shadow-inner text-gray-800 w-full sm:w-96">
+            <input type="text" id="addressInput" placeholder="輸入查詢門牌 (例: 惠民路71號)" class="px-3 py-1 text-sm w-full focus:outline-none">
+            <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded-md transition cursor-pointer">Search</button>
         </div>
     </header>
 
+    <!-- Main Layout -->
     <main class="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <!-- Peta Interaktif -->
+        
+        <!-- Left: Map Viewer -->
         <div class="w-full md:w-1/2 lg:w-3/5 p-3 md:p-4 shrink-0 md:shrink">
-            <div id="map" class="w-full rounded-xl shadow-lg border border-gray-200"></div>
+            <div id="map" class="w-full rounded-2xl shadow-lg border border-slate-300"></div>
         </div>
 
-        <!-- Panel Regulasi Zonasi Terpadu -->
+        <!-- Right: Structured Zoning Panels -->
         <div class="w-full md:w-1/2 lg:w-2/5 p-3 md:p-4 overflow-y-visible md:overflow-y-auto flex flex-col gap-4">
             
-            <!-- Location Information -->
-            <div class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200">
-                <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Location Information</h2>
-                <p id="resAddress" class="text-base md:text-lg font-bold text-slate-800">No Location Selected</p>
-                <p id="resCoords" class="text-xs text-slate-500 mt-1">Lat: -, Lng: -</p>
-                <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 text-xs text-slate-600">
-                    <div><span class="font-medium text-slate-400 block">District (行政區):</span> <span id="resDistrict" class="font-bold text-blue-900">-</span></div>
-                    <div><span class="font-medium text-slate-400 block">Zoning (SHP 使用分區):</span> <span id="resZoningType" class="font-bold text-purple-900">-</span></div>
+            <!-- Location Card -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Position Details</span>
+                    <span id="resCoords" class="text-[11px] text-slate-500 font-mono">Lat: -, Lng: -</span>
+                </div>
+                <p id="resAddress" class="text-base sm:text-lg font-extrabold text-black">請點擊地圖或搜尋地址</p>
+                <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100 text-xs">
+                    <div><span class="text-slate-500 block text-[10px]">行政區</span><span id="resDistrict" class="font-bold text-blue-900">-</span></div>
+                    <div><span class="text-slate-500 block text-[10px]">圖資分區 (SHP)</span><span id="resZoningType" class="font-bold text-purple-900">-</span></div>
                 </div>
             </div>
 
-            <!-- CONTAINER RESTRUKTURISASI TATA RUANG (ALL ZONING) -->
-            <div id="unifiedZoningContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 flex flex-col gap-5">
+            <!-- UNIFIED ZONING REGULATION CARDS -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-4">
                 
                 <!-- 1. 基本資訊 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-indigo-700 tracking-wider border-b border-indigo-100 pb-1 mb-2">基本資訊</h2>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">計畫區名稱</span><span id="f_plan_district" class="font-black text-black">-</span></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">計畫案名稱</span><span id="f_plan_case" class="font-black text-black">-</span></div>
-                        <div class="bg-purple-50/60 p-2 rounded"><span class="text-purple-700 block text-[10px] font-bold">使用分區／用地名稱</span><span id="f_zoning_doc" class="font-black text-purple-900">-</span></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">分區類別</span><span id="f_zoning_cat" class="font-black text-black">-</span></div>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-indigo-700 tracking-wide border-b border-indigo-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-indigo-600 rounded-sm"></span>基本資訊
+                    </h2>
+                    <div class="grid grid-cols-2 gap-2.5 text-xs">
+                        <div class="bg-white p-2.5 rounded border border-slate-200 shadow-2xs">
+                            <span class="text-slate-500 block text-[10px] font-medium">計畫區名稱</span>
+                            <span id="f_plan_district" class="font-bold text-black mt-0.5 block leading-tight">-</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200 shadow-2xs">
+                            <span class="text-slate-500 block text-[10px] font-medium">計畫案名稱</span>
+                            <span id="f_plan_case" class="font-bold text-black mt-0.5 block leading-tight">-</span>
+                        </div>
+                        <div class="bg-purple-50/70 p-2.5 rounded border border-purple-200 shadow-2xs">
+                            <span class="text-purple-700 block text-[10px] font-bold">使用分區／用地名稱</span>
+                            <span id="f_zoning_doc" class="font-extrabold text-purple-950 mt-0.5 block text-sm">-</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200 shadow-2xs">
+                            <span class="text-slate-500 block text-[10px] font-medium">分區類別</span>
+                            <span id="f_zoning_cat" class="font-bold text-black mt-0.5 block leading-tight">-</span>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 2. 版本治理 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wider border-b border-slate-100 pb-1 mb-2">版本治理</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wide border-b border-slate-200 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-slate-600 rounded-sm"></span>版本治理
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">版本文號／日期</span><p id="f_version_date" class="font-bold text-black leading-relaxed mt-0.5">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">來源PDF檔名（快照）</span><p id="f_pdf_snapshot" class="font-mono text-[11px] text-slate-800 break-all mt-0.5">-</p></div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">版本文號／日期</span>
+                            <p id="f_version_date" class="font-semibold text-black leading-relaxed mt-0.5">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">來源PDF檔名（快照）</span>
+                            <p id="f_pdf_snapshot" class="font-mono text-[11px] text-slate-800 break-all mt-0.5">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 3. 強度管制 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-emerald-700 tracking-wider border-b border-emerald-100 pb-1 mb-2">強度管制</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-emerald-700 tracking-wide border-b border-emerald-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-emerald-600 rounded-sm"></span>強度管制
+                    </h2>
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-emerald-50 p-2 rounded"><span class="text-emerald-700 block text-[10px] font-bold">建蔽率</span><p id="f_bcr" class="font-black text-black text-sm mt-0.5">-</p></div>
-                        <div class="bg-amber-50 p-2 rounded"><span class="text-amber-700 block text-[10px] font-bold">容積率（基準）</span><p id="f_far_base" class="font-black text-black text-sm mt-0.5">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded col-span-2"><span class="text-slate-500 block text-[10px]">容積率（上限）</span><p id="f_far_max" class="font-bold text-black leading-relaxed mt-0.5">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">建築物高度比／最高高度</span><p id="f_height" class="font-bold text-black mt-0.5">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">開挖率</span><p id="f_excavation" class="font-bold text-black mt-0.5">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded col-span-2"><span class="text-slate-500 block text-[10px]">最小基地面積</span><p id="f_min_site" class="font-bold text-black mt-0.5">-</p></div>
+                        <div class="bg-emerald-50/80 p-2.5 rounded border border-emerald-200">
+                            <span class="text-emerald-800 block text-[10px] font-bold">建蔽率</span>
+                            <p id="f_bcr" class="font-black text-black text-base mt-0.5 leading-snug">-</p>
+                        </div>
+                        <div class="bg-amber-50/80 p-2.5 rounded border border-amber-200">
+                            <span class="text-amber-800 block text-[10px] font-bold">容積率（基準）</span>
+                            <p id="f_far_base" class="font-black text-black text-base mt-0.5 leading-snug">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200 col-span-2">
+                            <span class="text-slate-500 block text-[10px] font-medium">容積率（上限）</span>
+                            <p id="f_far_max" class="font-semibold text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">建築物高度比／最高高度</span>
+                            <p id="f_height" class="font-semibold text-black mt-0.5 leading-snug">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">開挖率</span>
+                            <p id="f_excavation" class="font-semibold text-black mt-0.5 leading-snug">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200 col-span-2">
+                            <span class="text-slate-500 block text-[10px] font-medium">最小基地面積</span>
+                            <p id="f_min_site" class="font-semibold text-black mt-0.5 leading-snug">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 4. 使用管制 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-blue-700 tracking-wider border-b border-blue-100 pb-1 mb-2">使用管制</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-blue-700 tracking-wide border-b border-blue-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-blue-600 rounded-sm"></span>使用管制
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-blue-50/40 p-2 rounded"><span class="text-blue-700 block text-[10px] font-bold">容許使用規定</span><p id="f_permitted" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">使用項目列舉方式</span><p id="f_enumeration" class="font-medium text-black mt-0.5">-</p></div>
+                        <div class="bg-blue-50/40 p-2.5 rounded border border-blue-200">
+                            <span class="text-blue-800 block text-[10px] font-bold">容許使用規定</span>
+                            <p id="f_permitted" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">使用項目列舉方式</span>
+                            <p id="f_enumeration" class="font-semibold text-black mt-0.5">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 5. 退縮與開放空間 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-teal-700 tracking-wider border-b border-teal-100 pb-1 mb-2">退縮與開放空間</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-teal-700 tracking-wide border-b border-teal-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-teal-600 rounded-sm"></span>退縮與開放空間
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">建築退縮規定</span><p id="f_setback" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-purple-50/40 p-2 rounded"><span class="text-purple-700 block text-[10px] font-bold">開放空間規定</span><div id="f_open_space" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</div></div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">建築退縮規定</span>
+                            <p id="f_setback" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-purple-50/40 p-2.5 rounded border border-purple-200">
+                            <span class="text-purple-800 block text-[10px] font-bold">開放空間規定</span>
+                            <div id="f_open_space" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</div>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 6. 停車與裝卸 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wider border-b border-slate-100 pb-1 mb-2">停車與裝卸</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wide border-b border-slate-200 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-slate-600 rounded-sm"></span>停車與裝卸
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">停車設置基準</span><p id="f_parking" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">離街裝卸場規定</span><p id="f_loading" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">停車設置基準</span>
+                            <p id="f_parking" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">離街裝卸場規定</span>
+                            <p id="f_loading" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 7. 獎勵與移轉 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-amber-700 tracking-wider border-b border-amber-100 pb-1 mb-2">獎勵與移轉</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-amber-700 tracking-wide border-b border-amber-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-amber-600 rounded-sm"></span>獎勵與移轉
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-amber-50/50 p-2 rounded"><span class="text-amber-800 block text-[10px] font-bold">容積獎勵規定</span><p id="f_bonus" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">容積移轉規定</span><p id="f_transfer" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-amber-50/50 p-2.5 rounded border border-amber-200">
+                            <span class="text-amber-900 block text-[10px] font-bold">容積獎勵規定</span>
+                            <p id="f_bonus" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">容積移轉規定</span>
+                            <p id="f_transfer" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 8. 審議與其他管制 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-rose-700 tracking-wider border-b border-rose-100 pb-1 mb-2">審議與其他管制</h2>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-rose-700 tracking-wide border-b border-rose-100 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-rose-600 rounded-sm"></span>審議與其他管制
+                    </h2>
                     <div class="flex flex-col gap-2 text-xs">
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">都市設計審議門檻</span><p id="f_design_review" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-rose-50/40 p-2 rounded"><span class="text-rose-800 block text-[10px] font-bold">特殊條款／個案規定</span><p id="f_special_clauses" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
-                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">重疊管制規定</span><p id="f_overlap" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">都市設計審議門檻</span>
+                            <p id="f_design_review" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-rose-50/40 p-2.5 rounded border border-rose-200">
+                            <span class="text-rose-900 block text-[10px] font-bold">特殊條款／個案規定</span>
+                            <p id="f_special_clauses" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
+                        <div class="bg-white p-2.5 rounded border border-slate-200">
+                            <span class="text-slate-500 block text-[10px] font-medium">重疊管制規定</span>
+                            <p id="f_overlap" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- 9. 治理 -->
-                <div>
-                    <h2 class="text-xs font-black uppercase text-slate-500 tracking-wider border-b border-slate-100 pb-1 mb-2">治理</h2>
-                    <div class="text-xs bg-slate-50 p-2 rounded flex justify-between items-center">
-                        <span class="text-slate-500 text-[10px]">資料建立日期</span>
+                <section class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <h2 class="text-xs font-black uppercase text-slate-500 tracking-wide border-b border-slate-200 pb-1 mb-2.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3.5 bg-slate-400 rounded-sm"></span>治理
+                    </h2>
+                    <div class="text-xs bg-white p-2.5 rounded border border-slate-200 flex justify-between items-center">
+                        <span class="text-slate-500 text-[10px] font-medium">資料建立日期</span>
                         <span id="f_data_date" class="font-mono font-bold text-black">-</span>
                     </div>
-                </div>
+                </section>
 
-                <!-- 10. PDF 原始文件檔案 (PALING BAWAH) -->
-                <div class="pt-2 border-t border-gray-200">
-                    <h2 class="text-xs font-black uppercase text-indigo-900 tracking-wider mb-2">PDF 原始文件檔案</h2>
-                    <div id="pdfFileContainer" class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex items-center justify-between text-xs">
-                        <span class="text-slate-500">法規圖冊 PDF 檔案:</span>
-                        <div id="pdfActionArea"><span class="text-slate-400 italic font-mono text-[11px]">尚未上傳或關聯</span></div>
+                <!-- 10. PDF 原始文件檔案 (Paling Bawah) -->
+                <section class="border-2 border-dashed border-indigo-200 rounded-lg p-3 bg-indigo-50/30">
+                    <h2 class="text-xs font-black uppercase text-indigo-900 tracking-wide mb-2 flex items-center gap-1.5">
+                        <span class="text-sm">📄</span>法規原始文件（PDF）
+                    </h2>
+                    <div class="bg-white border border-indigo-100 p-3 rounded-md flex items-center justify-between text-xs">
+                        <span class="text-slate-600 font-medium">附件檔案路徑:</span>
+                        <div id="pdfActionArea">
+                            <span class="text-slate-400 italic font-mono text-[11px]">尚未關聯 PDF 檔案</span>
+                        </div>
                     </div>
-                </div>
+                </section>
 
             </div>
 
         </div>
     </main>
 
-    <!-- POP-UP LIGHTBOX MODAL VIEWER -->
+    <!-- LIGHTBOX MODAL VIEWER -->
     <div id="imageModal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-between p-4 animate-fade-in">
         <button onclick="closeModal()" class="absolute top-4 right-4 text-white text-4xl font-light cursor-pointer hover:text-red-400 z-50 transition">&times;</button>
         
         <div id="imgContainer" class="w-full flex-1 mt-10 mb-2 overflow-auto bg-slate-900/50 rounded-xl border border-slate-800 flex items-start justify-center p-4">
-            <img id="modalImg" src="" alt="Taichung Urban Plan Document Schema" class="shadow-2xl rounded">
+            <img id="modalImg" src="" alt="Taichung Urban Plan Schema" class="shadow-2xl rounded">
         </div>
 
         <div class="w-full max-w-xl shrink-0 flex flex-col items-center gap-2 text-white pb-2">
@@ -178,9 +277,11 @@
 
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
-            if (!fullAddress) return alert("Enter address!");
+            if (!fullAddress) return alert("請輸入地址！");
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(fullAddress)}`, { 
+                    headers: { "ngrok-skip-browser-warning": "true" } 
+                });
                 if (!response.ok) throw new Error("Query Failed.");
                 const data = await response.json();
                 updateDashboardUI(data);
@@ -192,9 +293,11 @@
             const lat = e.latlng.lat; const lng = e.latlng.lng;
             updateMapMarker(lat, lng, `Query Point`);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                const response = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, { 
+                    headers: { "ngrok-skip-browser-warning": "true" } 
+                });
                 const data = await response.json();
-                data.full_address = `Map Query Point (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                data.full_address = `座標查詢點 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 data.wgs84_latitude = lat; data.wgs84_longitude = lng;
                 updateDashboardUI(data);
             } catch (error) { console.error(error); }
@@ -266,6 +369,7 @@
         }, { passive: false });
 
         function updateDashboardUI(data) {
+            // Location
             safeSetText('resAddress', def_clean(data.full_address));
             safeSetText('resCoords', `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`);
             safeSetText('resDistrict', def_clean(data.district));
@@ -274,7 +378,7 @@
             // 1. 基本資訊
             safeSetText('f_plan_district', def_clean(data.plan_district_name));
             safeSetText('f_plan_case', def_clean(data.plan_case_name));
-            safeSetText('f_zoning_doc', def_clean(data.zoning_doc));
+            safeSetText('f_zoning_doc', def_clean(data.zoning_doc_name));
             safeSetText('f_zoning_cat', def_clean(data.zoning_category));
 
             // 2. 版本治理
@@ -293,14 +397,14 @@
             safeSetText('f_permitted', def_clean(data.permitted_uses_rule));
             safeSetText('f_enumeration', def_clean(data.usage_enumeration_type));
 
-            // 5. 退縮與開放空間 (Mendukung Tautan Gambar Interaktif 圖七 / 圖八 jika ada di deskripsi)
+            // 5. 退縮與開放空間 (支援點擊圖七、圖八 Lightbox)
             safeSetText('f_setback', def_clean(data.setback_regulations));
             let openSpaceHtml = def_clean(data.open_space_regulations);
             if (openSpaceHtml.includes("圖七")) {
-                openSpaceHtml = openSpaceHtml.replace("圖七", `<span onclick="openModal('figure7.jpg', '圖七 指定留設公共開放空間示意圖')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 inline-flex items-center gap-0.5">🖼️ 圖七</span>`);
+                openSpaceHtml = openSpaceHtml.replaceAll("圖七", `<span onclick="openModal('figure7.jpg', '圖七 指定留設公共開放空間示意圖')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 inline-flex items-center gap-0.5">🖼️ 圖七</span>`);
             }
             if (openSpaceHtml.includes("圖八")) {
-                openSpaceHtml = openSpaceHtml.replace("圖八", `<span onclick="openModal('figure8.jpg', '圖八 指定留設架空（地下）走廊區位示意圖')" class="text-blue-700 font-bold underline cursor-pointer hover:text-blue-900 inline-flex items-center gap-0.5">🖼️ 圖八</span>`);
+                openSpaceHtml = openSpaceHtml.replaceAll("圖八", `<span onclick="openModal('figure8.jpg', '圖八 指定留設架空（地下）走廊區位示意圖')" class="text-blue-700 font-bold underline cursor-pointer hover:text-blue-900 inline-flex items-center gap-0.5">🖼️ 圖八</span>`);
             }
             safeSetText('f_open_space', openSpaceHtml, true);
 
@@ -320,12 +424,12 @@
             // 9. 治理
             safeSetText('f_data_date', def_clean(data.data_created_date));
 
-            // 10. PDF 原始文件檔案 (Paling Bawah)
+            // 10. PDF 原始文件 (Paling Bawah)
             const pdfPath = data.pdf_file_path;
-            if (pdfPath && pdfPath.trim() !== "") {
-                safeSetText('pdfActionArea', `<a href="${pdfPath}" target="_blank" class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold transition shadow-sm">📄 開啟法規 PDF 檔案</a>`, true);
+            if (pdfPath && pdfPath.trim() !== "" && pdfPath !== "None") {
+                safeSetText('pdfActionArea', `<a href="${pdfPath}" target="_blank" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold transition shadow-xs">📄 開啟法規 PDF</a>`, true);
             } else {
-                safeSetText('pdfActionArea', `<span class="text-slate-400 italic font-mono text-[11px]">尚未上傳 PDF 檔案</span>`, true);
+                safeSetText('pdfActionArea', `<span class="text-slate-400 italic font-mono text-[11px]">尚未關聯 PDF 檔案</span>`, true);
             }
         }
 
