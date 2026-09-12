@@ -10,12 +10,7 @@
     <style>
         #map { height: 40vh; }
         @media (min-width: 768px) { #map { height: calc(100vh - 140px); } }
-        
-        #modalImg { 
-            transition: width 0.2s ease-out; 
-            max-width: none; 
-            max-height: none; 
-        }
+        #modalImg { transition: width 0.2s ease-out; max-width: none; max-height: none; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-screen flex flex-col relative">
@@ -24,78 +19,136 @@
         <h1 class="text-lg md:text-xl font-bold tracking-wide text-center sm:text-left">Taichung City Land Valuation (AVM) Dashboard</h1>
         <div class="flex items-center gap-2 bg-white p-1 rounded shadow-inner text-gray-800 w-full sm:w-96">
             <input type="text" id="addressInput" placeholder="Enter address (e.g., 惠民路71號)" class="px-3 py-1 text-sm w-full focus:outline-none">
-            <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded transition">Search</button>
+            <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1 text-sm font-semibold rounded transition cursor-pointer">Search</button>
         </div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <div class="w-full md:w-2/3 p-3 md:p-4 shrink-0 md:shrink">
+        <!-- Peta Interaktif -->
+        <div class="w-full md:w-1/2 lg:w-3/5 p-3 md:p-4 shrink-0 md:shrink">
             <div id="map" class="w-full rounded-xl shadow-lg border border-gray-200"></div>
         </div>
 
-        <div class="w-full md:w-1/3 p-3 md:p-4 overflow-y-visible md:overflow-y-auto flex flex-col gap-4">
+        <!-- Panel Regulasi Zonasi Terpadu -->
+        <div class="w-full md:w-1/2 lg:w-2/5 p-3 md:p-4 overflow-y-visible md:overflow-y-auto flex flex-col gap-4">
             
+            <!-- Location Information -->
             <div class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200">
                 <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Location Information</h2>
                 <p id="resAddress" class="text-base md:text-lg font-bold text-slate-800">No Location Selected</p>
                 <p id="resCoords" class="text-xs text-slate-500 mt-1">Lat: -, Lng: -</p>
-            </div>
-
-            <div class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200">
-                <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Zoning & Statutory Regulations</h2>
-                <div class="flex flex-col gap-2 mb-4 text-xs border-b border-gray-100 pb-3 text-slate-700">
-                    <div class="flex justify-between"><span class="font-medium">Master Plan:</span> <span id="resMasterPlan" class="text-slate-600 text-right">-</span></div>
-                    <div class="flex justify-between"><span class="font-medium">Detailed Plan:</span> <span id="resDetailedPlan" class="text-slate-600 text-right">-</span></div>
-                    <div class="flex justify-between"><span class="font-medium">Zoning (Doc/原文):</span> <span id="resZoningDoc" class="text-purple-700 font-bold text-right">-</span></div>
-                </div>
-                <div class="grid grid-cols-2 gap-3 md:gap-4">
-                    <div class="bg-blue-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-blue-600 block">District (行政區)</span><span id="resDistrict" class="text-sm md:text-base font-bold text-blue-900">-</span></div>
-                    <div class="bg-purple-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-purple-600 block">Zoning Type (SHP)</span><span id="resZoningType" class="text-sm md:text-base font-bold text-purple-900">-</span></div>
-                    <div class="bg-emerald-50 p-2.5 md:p-3 rounded-lg col-span-2"><span class="text-xs text-emerald-600 block">BCR (建蔽率)</span><span id="resBCR" class="text-lg md:text-xl font-black text-emerald-800">-</span></div>
-                    <div class="bg-amber-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-amber-600 block">Base FAR (基準容積率)</span><span id="resFarBase" class="text-base md:text-lg font-bold text-amber-800">-</span></div>
-                    <div class="bg-red-50 p-2.5 md:p-3 rounded-lg"><span class="text-xs text-red-600 block">Max FAR Limit / Height</span><span id="resFarMaxOrHeight" class="text-base md:text-lg font-bold text-red-800">-</span></div>
+                <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 text-xs text-slate-600">
+                    <div><span class="font-medium text-slate-400 block">District (行政區):</span> <span id="resDistrict" class="font-bold text-blue-900">-</span></div>
+                    <div><span class="font-medium text-slate-400 block">Zoning (SHP 使用分區):</span> <span id="resZoningType" class="font-bold text-purple-900">-</span></div>
                 </div>
             </div>
 
-            <div id="iduContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 flex flex-col gap-3">
-                <h2 class="text-xs font-bold uppercase text-emerald-600 tracking-wider">Integrated Development Unit Metrics</h2>
-                <div class="text-[11px] text-slate-700 divide-y divide-gray-100">
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category:</span> <span id="iduCategory" class="font-bold text-slate-900">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Area & Width:</span> <span id="iduSiteSpecs">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Height Ratios & Limits:</span> <span id="iduHeightSpecs">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Setback Framework:</span> <span id="iduSetbackSpecs" class="text-right font-medium text-blue-700">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Major Road Setbacks:</span> <span id="iduRoadSetbackSpecs" class="text-right text-slate-600">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Pedestrian Walkway Width:</span> <span id="iduWalkwayWidth">-</span></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Permitted Uses:</span> <p id="iduPermitted" class="bg-gray-50 p-1.5 rounded text-slate-600 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Prohibited Uses:</span> <p id="iduProhibited" class="bg-red-50/50 p-1.5 rounded text-red-900 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Fence Design Mandates:</span> <p id="iduFenceSpecs" class="bg-amber-50/50 p-1.5 rounded text-amber-900 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Pitched Roof Trigger Conditions:</span> <p id="iduRoofSpecs" class="bg-blue-50/40 p-1.5 rounded text-blue-900 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Greening & Soil Depth Regulations:</span> <p id="iduGreenSpecs" class="bg-emerald-50/40 p-1.5 rounded text-emerald-900 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Parking & Loading Dock Provisions:</span> <p id="iduParkingSpecs" class="bg-slate-50 p-1.5 rounded text-slate-700 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">FAR Bonus Matrix & TDR Applicability:</span> <p id="iduBonusSpecs" class="bg-purple-50/50 p-1.5 rounded text-purple-900 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Urban Design Review Thresholds:</span> <p id="iduDesignReview" class="bg-gray-100 p-1.5 rounded text-slate-700 leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">External Regulations Referenced:</span> <p id="iduExternalRegs" class="bg-slate-100 p-1.5 rounded text-slate-500 font-mono text-[10px] leading-normal text-justify">-</p></div>
-                    <div class="py-1.5 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Special Provisions & Notes:</span> <p id="iduSpecialNotes" class="bg-amber-50 text-amber-900 p-1.5 rounded border border-amber-200 leading-normal text-justify">-</p></div>
+            <!-- CONTAINER RESTRUKTURISASI TATA RUANG (ALL ZONING) -->
+            <div id="unifiedZoningContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 flex flex-col gap-5">
+                
+                <!-- 1. 基本資訊 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-indigo-700 tracking-wider border-b border-indigo-100 pb-1 mb-2">基本資訊</h2>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">計畫區名稱</span><span id="f_plan_district" class="font-black text-black">-</span></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">計畫案名稱</span><span id="f_plan_case" class="font-black text-black">-</span></div>
+                        <div class="bg-purple-50/60 p-2 rounded"><span class="text-purple-700 block text-[10px] font-bold">使用分區／用地名稱</span><span id="f_zoning_doc" class="font-black text-purple-900">-</span></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">分區類別</span><span id="f_zoning_cat" class="font-black text-black">-</span></div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="newMunicipalContainer" class="bg-white p-4 md:p-5 rounded-xl shadow border border-gray-200 hidden flex flex-col gap-3">
-                <h2 class="text-xs font-bold uppercase text-purple-600 tracking-wider">New Municipal Center Special Matrix</h2>
-                <div class="text-xs text-slate-700 divide-y divide-gray-100">
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Zone Category:</span> <span id="nmcCategory" class="font-bold">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Block ID:</span> <span id="nmcBlock">-</span></div>
-                    <div class="py-1.5 flex justify-between"><span class="font-medium">Min Site Scale:</span> <span id="nmcMinSite">-</span></div>
-                    
-                    <div class="py-2 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Open Space Form (開放空間形式):</span> <p id="nmcOpenSpaceForm" class="bg-purple-50/50 p-2 rounded text-purple-900 leading-normal text-justify font-medium">-</p></div>
-                    <div class="py-2 flex flex-col gap-0.5"><span class="font-medium text-slate-800">Skywalk / Corridor Request (架空走廊要求):</span> <p id="nmcCorridorReq" class="bg-blue-50/50 p-2 rounded text-blue-900 leading-normal text-justify font-medium">-</p></div>
+                <!-- 2. 版本治理 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wider border-b border-slate-100 pb-1 mb-2">版本治理</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">版本文號／日期</span><p id="f_version_date" class="font-bold text-black leading-relaxed mt-0.5">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">來源PDF檔名（快照）</span><p id="f_pdf_snapshot" class="font-mono text-[11px] text-slate-800 break-all mt-0.5">-</p></div>
+                    </div>
                 </div>
-                <h3 class="text-[11px] font-bold text-black uppercase tracking-tight mt-2">Use Allowance Matrix (G1-G19)</h3>
-                <div id="useGroupGrid" class="flex flex-col gap-1.5 text-left"></div>
+
+                <!-- 3. 強度管制 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-emerald-700 tracking-wider border-b border-emerald-100 pb-1 mb-2">強度管制</h2>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-emerald-50 p-2 rounded"><span class="text-emerald-700 block text-[10px] font-bold">建蔽率</span><p id="f_bcr" class="font-black text-black text-sm mt-0.5">-</p></div>
+                        <div class="bg-amber-50 p-2 rounded"><span class="text-amber-700 block text-[10px] font-bold">容積率（基準）</span><p id="f_far_base" class="font-black text-black text-sm mt-0.5">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded col-span-2"><span class="text-slate-500 block text-[10px]">容積率（上限）</span><p id="f_far_max" class="font-bold text-black leading-relaxed mt-0.5">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">建築物高度比／最高高度</span><p id="f_height" class="font-bold text-black mt-0.5">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">開挖率</span><p id="f_excavation" class="font-bold text-black mt-0.5">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded col-span-2"><span class="text-slate-500 block text-[10px]">最小基地面積</span><p id="f_min_site" class="font-bold text-black mt-0.5">-</p></div>
+                    </div>
+                </div>
+
+                <!-- 4. 使用管制 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-blue-700 tracking-wider border-b border-blue-100 pb-1 mb-2">使用管制</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-blue-50/40 p-2 rounded"><span class="text-blue-700 block text-[10px] font-bold">容許使用規定</span><p id="f_permitted" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">使用項目列舉方式</span><p id="f_enumeration" class="font-medium text-black mt-0.5">-</p></div>
+                    </div>
+                </div>
+
+                <!-- 5. 退縮與開放空間 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-teal-700 tracking-wider border-b border-teal-100 pb-1 mb-2">退縮與開放空間</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">建築退縮規定</span><p id="f_setback" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-purple-50/40 p-2 rounded"><span class="text-purple-700 block text-[10px] font-bold">開放空間規定</span><div id="f_open_space" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</div></div>
+                    </div>
+                </div>
+
+                <!-- 6. 停車與裝卸 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-slate-700 tracking-wider border-b border-slate-100 pb-1 mb-2">停車與裝卸</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">停車設置基準</span><p id="f_parking" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">離街裝卸場規定</span><p id="f_loading" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                    </div>
+                </div>
+
+                <!-- 7. 獎勵與移轉 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-amber-700 tracking-wider border-b border-amber-100 pb-1 mb-2">獎勵與移轉</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-amber-50/50 p-2 rounded"><span class="text-amber-800 block text-[10px] font-bold">容積獎勵規定</span><p id="f_bonus" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">容積移轉規定</span><p id="f_transfer" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                    </div>
+                </div>
+
+                <!-- 8. 審議與其他管制 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-rose-700 tracking-wider border-b border-rose-100 pb-1 mb-2">審議與其他管制</h2>
+                    <div class="flex flex-col gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">都市設計審議門檻</span><p id="f_design_review" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-rose-50/40 p-2 rounded"><span class="text-rose-800 block text-[10px] font-bold">特殊條款／個案規定</span><p id="f_special_clauses" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                        <div class="bg-slate-50 p-2 rounded"><span class="text-slate-500 block text-[10px]">重疊管制規定</span><p id="f_overlap" class="font-medium text-black leading-relaxed mt-0.5 text-justify">-</p></div>
+                    </div>
+                </div>
+
+                <!-- 9. 治理 -->
+                <div>
+                    <h2 class="text-xs font-black uppercase text-slate-500 tracking-wider border-b border-slate-100 pb-1 mb-2">治理</h2>
+                    <div class="text-xs bg-slate-50 p-2 rounded flex justify-between items-center">
+                        <span class="text-slate-500 text-[10px]">資料建立日期</span>
+                        <span id="f_data_date" class="font-mono font-bold text-black">-</span>
+                    </div>
+                </div>
+
+                <!-- 10. PDF 原始文件檔案 (PALING BAWAH) -->
+                <div class="pt-2 border-t border-gray-200">
+                    <h2 class="text-xs font-black uppercase text-indigo-900 tracking-wider mb-2">PDF 原始文件檔案</h2>
+                    <div id="pdfFileContainer" class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex items-center justify-between text-xs">
+                        <span class="text-slate-500">法規圖冊 PDF 檔案:</span>
+                        <div id="pdfActionArea"><span class="text-slate-400 italic font-mono text-[11px]">尚未上傳或關聯</span></div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
     </main>
 
+    <!-- POP-UP LIGHTBOX MODAL VIEWER -->
     <div id="imageModal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-between p-4 animate-fade-in">
         <button onclick="closeModal()" class="absolute top-4 right-4 text-white text-4xl font-light cursor-pointer hover:text-red-400 z-50 transition">&times;</button>
         
@@ -122,41 +175,6 @@
 
         let currentScale = 1.0;
         let baseWidth = 0; 
-
-        // 定義 G1 到 G19 完整的中文字義對照表
-        const gNames = {
-            1: "第一組（獨門獨院住宅）",
-            2: "第二組（集合住宅）",
-            3: "第三組（教育設施）",
-            4: "第四組（社區遊憩設施）",
-            5: "第五組（醫療保健及福利設施）",
-            6: "第六組（電力、郵政及通訊設施）",
-            7: "第七組（行政機關）",
-            8: "第八組（文化及社教設施）",
-            9: "第九組（零售業）",
-            10: "第十組（日常服務業）",
-            11: "第十一組（一般服務業）",
-            12: "第十二組（辦公事務所及工商服務業）",
-            13: "第十三組（金融、保險及不動產業）",
-            14: "第十四組（休閒服務業）",
-            15: "第十五組（運輸服務業）",
-            16: "第十六組（旅館業）",
-            17: "第十七組（貿易展示設施）",
-            18: "第十八組（批發業）",
-            19: "第十九組（娛樂服務業）"
-        };
-
-        // REVISI SCRIPT INITIALIZATION: 生成橫向通欄排列，文字數據皆強制黑色 (text-black font-black)
-        const gridBox = document.getElementById("useGroupGrid");
-        if (gridBox) {
-            for (let i = 1; i <= 19; i++) {
-                gridBox.innerHTML += `
-                    <div class="flex items-center justify-between border border-gray-200 rounded p-1.5 bg-gray-50 gap-2">
-                        <span class="text-black font-black text-[11px] block text-left">G${i} ${gNames[i]}</span>
-                        <span id="nmcG${i}" class="text-black font-black text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded border border-gray-200 bg-white">-</span>
-                    </div>`;
-            }
-        }
 
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
@@ -250,80 +268,64 @@
         function updateDashboardUI(data) {
             safeSetText('resAddress', def_clean(data.full_address));
             safeSetText('resCoords', `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`);
-            safeSetText('resMasterPlan', def_clean(data.master_plan));
-            safeSetText('resDetailedPlan', def_clean(data.detailed_plan));
             safeSetText('resDistrict', def_clean(data.district));
             safeSetText('resZoningType', def_clean(data.zoning_type));
-            safeSetText('resZoningDoc', def_clean(data.zoning_doc));
-            safeSetText('resBCR', def_clean(data.bcr_pct) === "-" ? "-" : data.bcr_pct + "%");
-            safeSetText('resFarBase', def_clean(data.far_base_pct) === "-" ? "-" : data.far_base_pct + "%");
 
-            const detailedPlanStr = data.detailed_plan || '';
+            // 1. 基本資訊
+            safeSetText('f_plan_district', def_clean(data.plan_district_name));
+            safeSetText('f_plan_case', def_clean(data.plan_case_name));
+            safeSetText('f_zoning_doc', def_clean(data.zoning_doc));
+            safeSetText('f_zoning_cat', def_clean(data.zoning_category));
 
-            if (detailedPlanStr.includes("新市政中心")) {
-                document.getElementById('newMunicipalContainer').classList.remove('hidden');
-                document.getElementById('iduContainer').classList.add('hidden');
-                safeSetText('resFarMaxOrHeight', "Max Height Ratio: " + def_clean(data.height_ratio));
+            // 2. 版本治理
+            safeSetText('f_version_date', def_clean(data.doc_version_date));
+            safeSetText('f_pdf_snapshot', def_clean(data.source_pdf_snapshot));
 
-                safeSetText('nmcCategory', def_clean(data.nmc_category));
-                safeSetText('nmcBlock', def_clean(data.nmc_block));
-                safeSetText('nmcMinSite', def_clean(data.nmc_min_site));
+            // 3. 強度管制
+            safeSetText('f_bcr', def_clean(data.bcr_pct));
+            safeSetText('f_far_base', def_clean(data.far_base_pct));
+            safeSetText('f_far_max', def_clean(data.far_max_pct));
+            safeSetText('f_height', def_clean(data.height_ratio_max));
+            safeSetText('f_excavation', def_clean(data.excavation_ratio));
+            safeSetText('f_min_site', def_clean(data.min_site_area));
 
-                const rawOpenSpace = def_clean(data.nmc_open_space_type);
-                if (rawOpenSpace.includes("圖七")) {
-                    safeSetText('nmcOpenSpaceForm', `<span onclick="openModal('figure7.jpg', '${rawOpenSpace}')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 transition flex items-center gap-1">🖼️ ${rawOpenSpace}</span>`, true);
-                } else {
-                    safeSetText('nmcOpenSpaceForm', rawOpenSpace);
-                }
+            // 4. 使用管制
+            safeSetText('f_permitted', def_clean(data.permitted_uses_rule));
+            safeSetText('f_enumeration', def_clean(data.usage_enumeration_type));
 
-                const rawCorridor = def_clean(data.nmc_corridor_req);
-                if (rawCorridor.includes("圖八")) {
-                    safeSetText('nmcCorridorReq', `<span onclick="openModal('figure8.jpg', '${rawCorridor}')" class="text-blue-700 font-bold underline cursor-pointer hover:text-blue-900 transition flex items-center gap-1">🖼️ ${rawCorridor}</span>`, true);
-                } else {
-                    safeSetText('nmcCorridorReq', rawCorridor);
-                }
-                
-                for (let i = 1; i <= 19; i++) {
-                    const cellVal = data[`nmc_g${i}`];
-                    const targetCell = document.getElementById(`nmcG${i}`);
-                    if (targetCell) {
-                        targetCell.innerText = (cellVal === "nan" || cellVal === "Data Not Available" || !cellVal) ? "-" : cellVal;
-                        
-                        // REVISI LOGIKA WARNA DATA: 完全保持強對比高飽和度黑字 (text-black font-black)，僅背景色區分狀態
-                        if (cellVal === "O" || cellVal === "G") {
-                            targetCell.className = "text-black font-black bg-emerald-100 border border-emerald-300 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded shadow-sm";
-                        } else if (cellVal === "B" || cellVal === "C" || cellVal === "A") {
-                            targetCell.className = "text-black font-black bg-amber-100 border border-amber-300 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded shadow-sm";
-                        } else {
-                            targetCell.className = "text-black font-black bg-gray-100 border border-gray-200 text-[11px] block min-w-[32px] text-center px-1.5 py-0.5 rounded";
-                        }
-                    }
-                }
+            // 5. 退縮與開放空間 (Mendukung Tautan Gambar Interaktif 圖七 / 圖八 jika ada di deskripsi)
+            safeSetText('f_setback', def_clean(data.setback_regulations));
+            let openSpaceHtml = def_clean(data.open_space_regulations);
+            if (openSpaceHtml.includes("圖七")) {
+                openSpaceHtml = openSpaceHtml.replace("圖七", `<span onclick="openModal('figure7.jpg', '圖七 指定留設公共開放空間示意圖')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 inline-flex items-center gap-0.5">🖼️ 圖七</span>`);
+            }
+            if (openSpaceHtml.includes("圖八")) {
+                openSpaceHtml = openSpaceHtml.replace("圖八", `<span onclick="openModal('figure8.jpg', '圖八 指定留設架空（地下）走廊區位示意圖')" class="text-blue-700 font-bold underline cursor-pointer hover:text-blue-900 inline-flex items-center gap-0.5">🖼️ 圖八</span>`);
+            }
+            safeSetText('f_open_space', openSpaceHtml, true);
+
+            // 6. 停車與裝卸
+            safeSetText('f_parking', def_clean(data.parking_standards));
+            safeSetText('f_loading', def_clean(data.loading_bay_rules));
+
+            // 7. 獎勵與移轉
+            safeSetText('f_bonus', def_clean(data.far_bonus_rules));
+            safeSetText('f_transfer', def_clean(data.far_transfer_rules));
+
+            // 8. 審議與其他管制
+            safeSetText('f_design_review', def_clean(data.urban_design_threshold));
+            safeSetText('f_special_clauses', def_clean(data.special_clauses));
+            safeSetText('f_overlap', def_clean(data.overlap_regulations));
+
+            // 9. 治理
+            safeSetText('f_data_date', def_clean(data.data_created_date));
+
+            // 10. PDF 原始文件檔案 (Paling Bawah)
+            const pdfPath = data.pdf_file_path;
+            if (pdfPath && pdfPath.trim() !== "") {
+                safeSetText('pdfActionArea', `<a href="${pdfPath}" target="_blank" class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold transition shadow-sm">📄 開啟法規 PDF 檔案</a>`, true);
             } else {
-                document.getElementById('iduContainer').classList.remove('hidden');
-                document.getElementById('newMunicipalContainer').classList.add('hidden');
-                safeSetText('resFarMaxOrHeight', def_clean(data.far_max_pct) === "-" ? "-" : data.far_max_pct + "%");
-
-                safeSetText('iduCategory', def_clean(data.nmc_category));
-                safeSetText('iduSiteSpecs', `Min Area: <b>${def_clean(data.idu_min_site)}</b> ㎡ | Min Width: <b>${def_clean(data.idu_min_width)}</b> m`, true);
-                safeSetText('iduHeightSpecs', `Max Height Ratio: <b>${def_clean(data.height_ratio)}</b> | Absolute Floors: <b>${def_clean(data.idu_height_floors)}</b> | Eave Height: <b>${def_clean(data.idu_height_eave)}</b> m`, true);
-                safeSetText('iduSetbackSpecs', `Front: <b>${def_clean(data.idu_front_yard)}</b>m | Rear: <b>${def_clean(data.idu_rear_yard)}</b>m | Side: <b>${def_clean(data.idu_side_yard)}</b>m <br><span class="text-[9px] text-slate-500 font-normal">Side Note: ${def_clean(data.idu_side_note)}</span>`, true);
-                safeSetText('iduRoadSetbackSpecs', `Road Setback Depth: <b>${def_clean(data.idu_road_setback)}</b> m (Major Road target: <i>${def_clean(data.idu_road_name)}</i>)`, true);
-                safeSetText('iduWalkwayWidth', def_clean(data.idu_walkway_width) === "-" ? "-" : data.idu_walkway_width + " m");
-                safeSetText('iduPermitted', def_clean(data.idu_permitted_uses));
-                safeSetText('iduProhibited', def_clean(data.idu_prohibited_uses));
-                
-                safeSetText('iduFenceSpecs', `Max Fence Height: <b>${def_clean(data.idu_fence_max)}</b> m | Max Solid Part: <b>${def_clean(data.idu_fence_solid)}</b> m | Min Visual Transparency: <b>${def_clean(data.idu_fence_trans)}</b>% <br><span class="text-[10px] text-slate-600 block mt-0.5"><b>Design Request:</b> ${def_clean(data.idu_fence_req)}</span>`, true);
-                safeSetText('iduRoofSpecs', def_clean(data.idu_roof_trigger));
-                
-                safeSetText('iduGreenSpecs', `Min Open Space Green Ratio: <b>${def_clean(data.idu_green_space_pct)}</b>% | Tree Density Requirement: <b>${def_clean(data.idu_tree_density)}</b> <br>Min Soil Depth: <i>${def_clean(data.idu_soil_depth)}</i>`, true);
-                safeSetText('iduParkingSpecs', `Min Spaces per Unit: <b>${def_clean(data.idu_parking_min)}</b> <br><b>Provision Standard:</b> ${def_clean(data.idu_parking_std)} <br><b>Off-Street Loading Dock Request:</b> ${def_clean(data.idu_loading_req)}`, true);
-                
-                safeSetText('iduBonusSpecs', `Public Amenities: <b>${def_clean(data.idu_b_public)}</b> <br>Comprehensive Dev: <b>${def_clean(data.idu_b_comprehensive)}</b> | Early Phase: <b>${def_clean(data.idu_b_early)}</b> <br>Vacant Land Greening: <b>${def_clean(data.idu_b_green)}</b> | Aged Bldg Redevel: <b>${def_clean(data.idu_b_aged)}</b> <br>Corner Plaza: <b>${def_clean(data.idu_b_plaza)}</b> <br><span class="text-purple-700 font-bold">Aggregate Cap Limit: ${def_clean(data.idu_b_cap)}</span> | TDR Applicability: <u>${def_clean(data.idu_tdr_applicable)}</u>`, true);
-                
-                safeSetText('iduDesignReview', def_clean(data.idu_design_review));
-                safeSetText('iduExternalRegs', def_clean(data.idu_external_regs));
-                safeSetText('iduSpecialNotes', def_clean(data.notes));
+                safeSetText('pdfActionArea', `<span class="text-slate-400 italic font-mono text-[11px]">尚未上傳 PDF 檔案</span>`, true);
             }
         }
 
