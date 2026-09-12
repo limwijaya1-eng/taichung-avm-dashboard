@@ -17,7 +17,7 @@
             <span class="text-2xl">⚙️</span>
             <div>
                 <h1 class="text-lg font-bold">法規資料維護系統 (Zoning Database CMS)</h1>
-                <p class="text-xs text-slate-400">table: taichung_urban_planning_all_zoning</p>
+                <p class="text-xs text-slate-400">table: taichung_urban_planning_all_zoning (PostgreSQL BYTEA Storage)</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -56,7 +56,7 @@
                             <th class="p-3">計畫案名稱</th>
                             <th class="p-3 text-center">建蔽率</th>
                             <th class="p-3 text-center">容積率(基準)</th>
-                            <th class="p-3 text-center">法規PDF附件</th>
+                            <th class="p-3 text-center">法規PDF附件 (DB)</th>
                             <th class="p-3 text-center">操作</th>
                         </tr>
                     </thead>
@@ -69,7 +69,7 @@
 
     </main>
 
-    <!-- Modal Form (Drawer Pop-up Tambah & Edit) -->
+    <!-- Modal Form (Pop-up Tambah & Edit) -->
     <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
             
@@ -88,7 +88,7 @@
                     <h4 class="font-bold text-indigo-900 text-sm mb-2 border-b border-indigo-100 pb-1">1. 基本資訊</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">使用分區／用地名稱 * (必填，與圖資關聯鍵)</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">使用分區／用地名稱 * (必填)</label>
                             <input type="text" id="m_zoning_doc" required class="w-full border border-slate-300 rounded p-1.5 text-sm font-bold text-purple-900 bg-white">
                         </div>
                         <div>
@@ -176,7 +176,7 @@
                             <textarea id="m_setback" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">開放空間規定 (若含 圖七、圖八 儀表板自動支援 Lightbox)</label>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">開放空間規定</label>
                             <textarea id="m_open_space" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
                         </div>
                     </div>
@@ -231,16 +231,16 @@
                     </div>
                 </div>
 
-                <!-- 9. 治理與 PDF 上傳 -->
+                <!-- 9. 治理與 PDF 儲存至資料庫 -->
                 <div class="border-2 border-dashed border-indigo-300 bg-indigo-50/50 p-4 rounded-xl">
-                    <h4 class="font-bold text-indigo-900 text-sm mb-2 flex items-center gap-1.5">📄 9. 治理與法規 PDF 檔案上傳</h4>
+                    <h4 class="font-bold text-indigo-900 text-sm mb-2 flex items-center gap-1.5">💾 9. 治理與法規 PDF 檔案儲存 (PostgreSQL BYTEA)</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">資料建立日期</label>
                             <input type="text" id="m_created_date" placeholder="2026-09-12" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-indigo-900 mb-1">上傳法規原始文件 PDF 檔案</label>
+                            <label class="block text-xs font-bold text-indigo-900 mb-1">選擇上傳 PDF (檔案將直接存入 PostgreSQL 資料庫)</label>
                             <input type="file" id="m_pdf_file" accept=".pdf" class="w-full border border-slate-300 rounded p-1 text-sm bg-white">
                             <p id="current_pdf_hint" class="text-xs text-slate-500 mt-1"></p>
                         </div>
@@ -253,7 +253,7 @@
                         取消
                     </button>
                     <button type="submit" id="saveBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition cursor-pointer shadow-sm">
-                        儲存資料
+                        儲存至資料庫
                     </button>
                 </div>
 
@@ -264,7 +264,6 @@
     <script>
         const API_BASE_URL = "https://evacuee-subzero-annuity.ngrok-free.dev";
 
-        // Memuat Data saat Halaman Dibuka
         document.addEventListener("DOMContentLoaded", () => {
             loadTableData();
         });
@@ -287,8 +286,8 @@
                 }
 
                 tbody.innerHTML = data.map(item => {
-                    const pdfBadge = item.pdf_file_path && item.pdf_file_path.trim() !== ""
-                        ? `<a href="${API_BASE_URL}/${item.pdf_file_path}" target="_blank" class="text-indigo-600 hover:underline font-bold text-xs">📄 開啟PDF</a>`
+                    const pdfBadge = item.has_pdf
+                        ? `<a href="${API_BASE_URL}/api/v1/zoning-records/${item.id}/pdf" target="_blank" class="text-indigo-600 hover:underline font-bold text-xs">📄 開啟PDF</a>`
                         : `<span class="text-slate-300 text-xs">無附件</span>`;
 
                     return `
@@ -372,10 +371,10 @@
                 document.getElementById("m_overlap").value = data['重疊管制規定'] || '';
                 document.getElementById("m_created_date").value = data['資料建立日期'] || '';
 
-                if (data.pdf_file_path && data.pdf_file_path !== "") {
-                    document.getElementById("current_pdf_hint").innerHTML = `現有檔案: <a href="${API_BASE_URL}/${data.pdf_file_path}" target="_blank" class="text-indigo-600 underline">${data.pdf_file_path}</a>`;
+                if (data.has_pdf) {
+                    document.getElementById("current_pdf_hint").innerHTML = `資料庫中已有 PDF: <a href="${API_BASE_URL}/api/v1/zoning-records/${data.id}/pdf" target="_blank" class="text-indigo-600 underline font-bold">${data.pdf_filename || '點此開啟檢視'}</a> (上傳新檔可覆蓋)`;
                 } else {
-                    document.getElementById("current_pdf_hint").innerText = "目前無關聯 PDF 檔案";
+                    document.getElementById("current_pdf_hint").innerText = "目前資料庫無關聯 PDF";
                 }
 
                 document.getElementById("formModal").classList.remove("hidden");
@@ -425,8 +424,8 @@
 
             try {
                 const res = await fetch(url, { method: method, body: formData });
-                if (!res.ok) throw new Error("儲存失敗");
-                alert(isEdit ? "更新成功！" : "新增成功！");
+                if (!res.ok) throw new Error("儲存至資料庫失敗");
+                alert(isEdit ? "更新並儲存至資料庫成功！" : "新增成功！");
                 closeModal();
                 loadTableData();
             } catch (err) {
