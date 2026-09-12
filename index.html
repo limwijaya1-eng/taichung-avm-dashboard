@@ -19,7 +19,7 @@
 </head>
 <body class="bg-slate-100 h-screen flex flex-col relative text-slate-800">
 
-    <!-- Header dengan Tombol Navigasi ke admin.html -->
+    <!-- Header dengan Navigasi -->
     <header class="bg-slate-900 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-2.5">
             <span class="text-2xl">🏛️</span>
@@ -238,14 +238,13 @@
                     </div>
                 </section>
 
-                <!-- 10. PDF 原始文件 -->
+                <!-- 10. PDF 原始文件 (Menampilkan Nama File & Tautan Klik) -->
                 <section class="border-2 border-dashed border-indigo-300 rounded-xl p-3.5 bg-indigo-50/40">
                     <h2 class="text-base font-black uppercase text-indigo-900 tracking-wide mb-2 flex items-center gap-2">
                         <span class="text-lg">📄</span>法規原始文件（PDF）
                     </h2>
                     <div class="bg-white border border-indigo-100 p-3.5 rounded-lg flex items-center justify-between text-sm">
-                        <span class="text-slate-700 text-[14px] font-medium">附件檔案狀態:</span>
-                        <div id="pdfActionArea">
+                        <div id="pdfActionArea" class="w-full">
                             <span class="text-slate-400 italic font-mono text-sm">尚未關聯 PDF 檔案</span>
                         </div>
                     </div>
@@ -434,11 +433,26 @@
             // 9. 治理
             safeSetText('f_data_date', def_clean(data.data_created_date));
 
-            // 10. PDF 原始文件
+            // 10. PDF 原始文件 (Menampilkan Nama File & Tautan Klik)
             const pdfPath = data.pdf_file_path;
-            if (pdfPath && pdfPath.trim() !== "" && pdfPath !== "None") {
+            if (pdfPath && pdfPath.trim() !== "" && pdfPath !== "None" && pdfPath !== "Data Not Available") {
                 const fullPdfUrl = pdfPath.startsWith("http") ? pdfPath : `${API_BASE_URL}/${pdfPath}`;
-                safeSetText('pdfActionArea', `<a href="${fullPdfUrl}" target="_blank" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition shadow-xs cursor-pointer">📄 開啟法規 PDF 檔案</a>`, true);
+                const fileName = pdfPath.split('/').pop();
+
+                safeSetText('pdfActionArea', `
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 w-full">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <span class="text-red-500 text-lg shrink-0">📄</span>
+                            <span class="font-mono text-xs md:text-sm font-bold text-slate-800 break-all" title="${fileName}">
+                                ${fileName}
+                            </span>
+                        </div>
+                        <a href="${fullPdfUrl}" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold transition shadow-xs cursor-pointer shrink-0">
+                            🔍 預覽開啟 PDF
+                        </a>
+                    </div>
+                `, true);
             } else {
                 safeSetText('pdfActionArea', `<span class="text-slate-400 italic font-mono text-sm">尚未關聯 PDF 檔案</span>`, true);
             }
