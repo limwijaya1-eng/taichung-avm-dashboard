@@ -19,7 +19,7 @@
 </head>
 <body class="bg-slate-100 h-screen flex flex-col relative text-slate-800">
 
-    <!-- Header dengan Navigasi -->
+    <!-- Header dengan Navigasi ke admin.html -->
     <header class="bg-slate-900 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-2.5">
             <span class="text-2xl">🏛️</span>
@@ -238,7 +238,7 @@
                     </div>
                 </section>
 
-                <!-- 10. PDF 原始文件 (Menampilkan Nama File & Tautan Klik) -->
+                <!-- 10. PDF 原始文件 (BYTEA Streaming Langsung Dari Database) -->
                 <section class="border-2 border-dashed border-indigo-300 rounded-xl p-3.5 bg-indigo-50/40">
                     <h2 class="text-base font-black uppercase text-indigo-900 tracking-wide mb-2 flex items-center gap-2">
                         <span class="text-lg">📄</span>法規原始文件（PDF）
@@ -433,28 +433,31 @@
             // 9. 治理
             safeSetText('f_data_date', def_clean(data.data_created_date));
 
-            // 10. PDF 原始文件 (Menampilkan Nama File & Tautan Klik)
-            const pdfPath = data.pdf_file_path;
-            if (pdfPath && pdfPath.trim() !== "" && pdfPath !== "None" && pdfPath !== "Data Not Available") {
-                const fullPdfUrl = pdfPath.startsWith("http") ? pdfPath : `${API_BASE_URL}/${pdfPath}`;
-                const fileName = pdfPath.split('/').pop();
+            // 10. PDF 原始文件 (Mengambil Dari Endpoint Streaming BYTEA)
+            const recordId = data.zoning_id || data.id;
+            const pdfFilename = data.pdf_filename;
+            const pdfActionBox = document.getElementById('pdfActionArea');
 
-                safeSetText('pdfActionArea', `
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 w-full">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <span class="text-red-500 text-lg shrink-0">📄</span>
-                            <span class="font-mono text-xs md:text-sm font-bold text-slate-800 break-all" title="${fileName}">
-                                ${fileName}
-                            </span>
+            if (pdfActionBox) {
+                if (pdfFilename && pdfFilename.trim() !== "" && pdfFilename !== "None" && recordId) {
+                    const streamUrl = `${API_BASE_URL}/api/v1/zoning-records/${recordId}/pdf`;
+                    pdfActionBox.innerHTML = `
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full py-1">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <span class="text-xl shrink-0">📄</span>
+                                <span class="font-bold text-slate-900 text-sm md:text-base break-all" title="${pdfFilename}">
+                                    ${pdfFilename}
+                                </span>
+                            </div>
+                            <a href="${streamUrl}" target="_blank" rel="noopener noreferrer" 
+                               class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-sm shrink-0 cursor-pointer">
+                                🔍 預覽開啟 PDF
+                            </a>
                         </div>
-                        <a href="${fullPdfUrl}" target="_blank" rel="noopener noreferrer" 
-                           class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold transition shadow-xs cursor-pointer shrink-0">
-                            🔍 預覽開啟 PDF
-                        </a>
-                    </div>
-                `, true);
-            } else {
-                safeSetText('pdfActionArea', `<span class="text-slate-400 italic font-mono text-sm">尚未關聯 PDF 檔案</span>`, true);
+                    `;
+                } else {
+                    pdfActionBox.innerHTML = `<span class="text-slate-400 italic text-sm">尚未關聯 PDF 檔案</span>`;
+                }
             }
         }
 
