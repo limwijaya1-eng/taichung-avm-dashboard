@@ -238,7 +238,7 @@
                     </div>
                 </section>
 
-                <!-- 10. PDF 原始文件 (BYTEA Streaming Langsung Dari Database) -->
+                <!-- 10. PDF 原始文件 (Buka Langsung Tanpa Layar Peringatan Ngrok) -->
                 <section class="border-2 border-dashed border-indigo-300 rounded-xl p-3.5 bg-indigo-50/40">
                     <h2 class="text-base font-black uppercase text-indigo-900 tracking-wide mb-2 flex items-center gap-2">
                         <span class="text-lg">📄</span>法規原始文件（PDF）
@@ -376,6 +376,28 @@
             zoomManual(direction * 0.15);
         }, { passive: false });
 
+        // Fungsi Buka PDF Langsung Menggunakan Blob (Melewati Peringatan Ngrok)
+        async function openPdfDirectly(recordId, filename) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/zoning-records/${recordId}/pdf`, {
+                    headers: {
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+                
+                if (!response.ok) throw new Error("無法從資料庫下載 PDF 檔案。");
+                
+                const blob = await response.blob();
+                const fileBlob = new Blob([blob], { type: "application/pdf" });
+                const fileURL = URL.createObjectURL(fileBlob);
+                
+                // Buka langsung di tab baru browser
+                window.open(fileURL, '_blank');
+            } catch (err) {
+                alert("開啟 PDF 失敗: " + err.message);
+            }
+        }
+
         function updateDashboardUI(data) {
             // Location
             safeSetText('resAddress', def_clean(data.full_address));
@@ -433,14 +455,13 @@
             // 9. 治理
             safeSetText('f_data_date', def_clean(data.data_created_date));
 
-            // 10. PDF 原始文件 (Mengambil Dari Endpoint Streaming BYTEA)
+            // 10. PDF 原始文件 (Buka Langsung dengan Blob URL)
             const recordId = data.zoning_id || data.id;
             const pdfFilename = data.pdf_filename;
             const pdfActionBox = document.getElementById('pdfActionArea');
 
             if (pdfActionBox) {
                 if (pdfFilename && pdfFilename.trim() !== "" && pdfFilename !== "None" && recordId) {
-                    const streamUrl = `${API_BASE_URL}/api/v1/zoning-records/${recordId}/pdf`;
                     pdfActionBox.innerHTML = `
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full py-1">
                             <div class="flex items-center gap-2 overflow-hidden">
@@ -449,10 +470,10 @@
                                     ${pdfFilename}
                                 </span>
                             </div>
-                            <a href="${streamUrl}" target="_blank" rel="noopener noreferrer" 
-                               class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-sm shrink-0 cursor-pointer">
+                            <button onclick="openPdfDirectly(${recordId}, '${pdfFilename.replace(/'/g, "\\'")}')" 
+                                    class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-sm shrink-0 cursor-pointer">
                                 🔍 預覽開啟 PDF
-                            </a>
+                            </button>
                         </div>
                     `;
                 } else {
