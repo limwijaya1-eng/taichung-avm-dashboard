@@ -79,7 +79,7 @@
                 <button onclick="closeModal()" class="text-white hover:text-red-400 text-2xl font-light leading-none cursor-pointer">&times;</button>
             </div>
 
-            <!-- Modal Body (Form Terstruktur) -->
+            <!-- Modal Body -->
             <form id="recordForm" onsubmit="submitForm(event)" class="p-5 overflow-y-auto flex flex-col gap-5 text-sm">
                 <input type="hidden" id="form_id" value="">
 
@@ -261,12 +261,52 @@
         </div>
     </div>
 
+    <!-- POPUP PDF VIEWER MODAL DI ADMIN -->
+    <div id="pdfModalAdmin" class="hidden fixed inset-0 bg-black/80 z-[10000] flex flex-col items-center justify-center p-3 md:p-6 animate-fade-in">
+        <div class="bg-white w-full h-full max-w-6xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="text-lg">📄</span>
+                    <span id="pdfModalAdminTitle" class="font-bold text-sm md:text-base truncate">法規文件預覽</span>
+                </div>
+                <button onclick="closePdfModalAdmin()" class="text-white hover:text-red-400 text-3xl font-light leading-none cursor-pointer">&times;</button>
+            </div>
+            <div class="flex-1 w-full bg-slate-200">
+                <iframe id="pdfAdminIframe" src="" class="w-full h-full border-none"></iframe>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE_URL = "https://evacuee-subzero-annuity.ngrok-free.dev";
+        let activeAdminBlobUrl = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             loadTableData();
         });
+
+        async function viewPdfAdmin(recordId, filename) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/zoning-records/${recordId}/pdf`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                if (!response.ok) throw new Error("無法讀取 PDF");
+                const blob = await response.blob();
+                if (activeAdminBlobUrl) URL.revokeObjectURL(activeAdminBlobUrl);
+                activeAdminBlobUrl = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+
+                document.getElementById('pdfModalAdminTitle').innerText = filename || `Record #${recordId} PDF`;
+                document.getElementById('pdfAdminIframe').src = activeAdminBlobUrl;
+                document.getElementById('pdfModalAdmin').classList.remove('hidden');
+            } catch (err) {
+                alert("開啟失敗: " + err.message);
+            }
+        }
+
+        function closePdfModalAdmin() {
+            document.getElementById('pdfModalAdmin').classList.add('hidden');
+            document.getElementById('pdfAdminIframe').src = "";
+        }
 
         async function loadTableData() {
             const query = document.getElementById("searchInput").value;
@@ -287,7 +327,7 @@
 
                 tbody.innerHTML = data.map(item => {
                     const pdfBadge = item.has_pdf
-                        ? `<a href="${API_BASE_URL}/api/v1/zoning-records/${item.id}/pdf" target="_blank" class="text-indigo-600 hover:underline font-bold text-xs">📄 開啟PDF</a>`
+                        ? `<button onclick="viewPdfAdmin(${item.id}, '${(item.pdf_filename || '').replace(/'/g, "\\'")}')" class="text-indigo-600 hover:underline font-bold text-xs cursor-pointer">📄 開啟PDF</button>`
                         : `<span class="text-slate-300 text-xs">無附件</span>`;
 
                     return `
@@ -372,7 +412,7 @@
                 document.getElementById("m_created_date").value = data['資料建立日期'] || '';
 
                 if (data.has_pdf) {
-                    document.getElementById("current_pdf_hint").innerHTML = `資料庫中已有 PDF: <a href="${API_BASE_URL}/api/v1/zoning-records/${data.id}/pdf" target="_blank" class="text-indigo-600 underline font-bold">${data.pdf_filename || '點此開啟檢視'}</a> (上傳新檔可覆蓋)`;
+                    document.getElementById("current_pdf_hint").innerHTML = `資料庫中已有 PDF: <span class="font-bold text-indigo-700">${data.pdf_filename || '已上傳'}</span> (上傳新檔可覆蓋)`;
                 } else {
                     document.getElementById("current_pdf_hint").innerText = "目前資料庫無關聯 PDF";
                 }
