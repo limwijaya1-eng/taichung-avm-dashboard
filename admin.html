@@ -17,7 +17,7 @@
             <span class="text-2xl">⚙️</span>
             <div>
                 <h1 class="text-lg font-bold">法規資料維護系統 (Zoning Database CMS)</h1>
-                <p class="text-xs text-slate-400">table: taichung_urban_planning_all_zoning (PostgreSQL BYTEA Storage)</p>
+                <p class="text-xs text-slate-400">table: taichung_urban_planning_all_zoning (70-Column Granular Schema)</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -71,7 +71,7 @@
 
     <!-- Modal Form (Pop-up Tambah & Edit) -->
     <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+        <div class="bg-white w-full max-w-5xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
             
             <!-- Modal Header -->
             <div class="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
@@ -89,19 +89,19 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">使用分區／用地名稱 * (必填)</label>
-                            <input type="text" id="m_zoning_doc" required class="w-full border border-slate-300 rounded p-1.5 text-sm font-bold text-purple-900 bg-white">
+                            <input type="text" id="m_zoning_doc" name="使用分區／用地名稱" required class="w-full border border-slate-300 rounded p-1.5 text-sm font-bold text-purple-900 bg-white">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">分區類別</label>
-                            <input type="text" id="m_zoning_cat" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                            <input type="text" id="m_zoning_cat" name="分區類別" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">計畫區名稱</label>
-                            <input type="text" id="m_plan_district" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                            <input type="text" id="m_plan_district" name="計畫區名稱" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">計畫案名稱</label>
-                            <input type="text" id="m_plan_case" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                            <input type="text" id="m_plan_case" name="計畫案名稱" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
                         </div>
                     </div>
                 </div>
@@ -112,43 +112,92 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-medium text-slate-700 mb-1">版本文號／日期</label>
-                            <textarea id="m_version_date" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                            <textarea id="m_version_date" name="版本文號／日期" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
                         </div>
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-medium text-slate-700 mb-1">來源PDF檔名（快照）</label>
-                            <input type="text" id="m_pdf_snapshot" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white font-mono text-xs">
+                            <input type="text" id="m_pdf_snapshot" name="來源PDF檔名（快照）" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white font-mono text-xs">
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. 強度管制 -->
                 <div class="border border-emerald-100 bg-emerald-50/30 p-3.5 rounded-xl">
-                    <h4 class="font-bold text-emerald-900 text-sm mb-2 border-b border-emerald-100 pb-1">3. 強度管制</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">建蔽率</label>
-                            <input type="text" id="m_bcr" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                    <h4 class="font-bold text-emerald-900 text-sm mb-2 border-b border-emerald-100 pb-1">3. 強度管制 (狀態 / 出處 / 備註)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        
+                        <!-- 建蔽率 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-emerald-200">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-emerald-800 text-xs">建蔽率</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="建蔽率_狀態" placeholder="狀態 (例: 50%)" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="建蔽率_出處" placeholder="出處 (例: p.19)" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="建蔽率_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">容積率（基準）</label>
-                            <input type="text" id="m_far_base" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+
+                        <!-- 容積率（基準） -->
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-amber-800 text-xs">容積率（基準）</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="容積率（基準）_狀態" placeholder="狀態 (例: 350%)" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="容積率（基準）_出處" placeholder="出處 (例: p.19)" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="容積率（基準）_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">建築物高度比／最高高度</label>
-                            <input type="text" id="m_height" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+
+                        <!-- 容積率（上限） -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200 md:col-span-2">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-slate-700 text-xs">容積率（上限）</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="容積率（上限）_狀態" placeholder="狀態 (例: 約385%)" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="容積率（上限）_出處" placeholder="出處 (例: p.13)" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="容積率（上限）_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div class="sm:col-span-3">
-                            <label class="block text-xs font-medium text-slate-700 mb-1">容積率（上限）</label>
-                            <textarea id="m_far_max" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+
+                        <!-- 建築物高度比／最高高度 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-slate-700 text-xs">建築物高度比／最高高度</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="建築物高度比／最高高度_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="建築物高度比／最高高度_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="建築物高度比／最高高度_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">開挖率</label>
-                            <input type="text" id="m_excavation" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+
+                        <!-- 開挖率 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-slate-700 text-xs">開挖率</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="開挖率_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="開挖率_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="開挖率_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-700 mb-1">最小基地面積</label>
-                            <input type="text" id="m_min_site" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+
+                        <!-- 最小基地面積 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200 md:col-span-2">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-slate-700 text-xs">最小基地面積</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="最小基地面積_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="最小基地面積_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="最小基地面積_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -156,13 +205,21 @@
                 <div class="border border-blue-100 bg-blue-50/30 p-3.5 rounded-xl">
                     <h4 class="font-bold text-blue-900 text-sm mb-2 border-b border-blue-100 pb-1">4. 使用管制</h4>
                     <div class="flex flex-col gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">容許使用規定</label>
-                            <textarea id="m_permitted" rows="3" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-blue-200">
+                            <span class="font-bold text-blue-900 text-xs block mb-1">容許使用規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="容許使用規定_狀態" rows="2" placeholder="狀態內容" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="容許使用規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="容許使用規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">使用項目列舉方式</label>
-                            <input type="text" id="m_enumeration" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">使用項目列舉方式</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="使用項目列舉方式_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="使用項目列舉方式_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="使用項目列舉方式_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,13 +228,21 @@
                 <div class="border border-teal-100 bg-teal-50/30 p-3.5 rounded-xl">
                     <h4 class="font-bold text-teal-900 text-sm mb-2 border-b border-teal-100 pb-1">5. 退縮與開放空間</h4>
                     <div class="flex flex-col gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">建築退縮規定</label>
-                            <textarea id="m_setback" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-teal-900 text-xs block mb-1">建築退縮規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="建築退縮規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="建築退縮規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="建築退縮規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">開放空間規定</label>
-                            <textarea id="m_open_space" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-purple-200">
+                            <span class="font-bold text-purple-900 text-xs block mb-1">開放空間規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="開放空間規定_狀態" rows="2" placeholder="狀態 (含圖七、圖八支援)" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="開放空間規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="開放空間規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,13 +251,21 @@
                 <div class="border border-slate-200 bg-slate-50/50 p-3.5 rounded-xl">
                     <h4 class="font-bold text-slate-700 text-sm mb-2 border-b border-slate-200 pb-1">6. 停車與裝卸</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">停車設置基準</label>
-                            <textarea id="m_parking" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">停車設置基準</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="停車設置基準_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="停車設置基準_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="停車設置基準_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">離街裝卸場規定</label>
-                            <textarea id="m_loading" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">離街裝卸場規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="離街裝卸場規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="離街裝卸場規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="離街裝卸場規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -201,33 +274,100 @@
                 <div class="border border-amber-100 bg-amber-50/30 p-3.5 rounded-xl">
                     <h4 class="font-bold text-amber-900 text-sm mb-2 border-b border-amber-100 pb-1">7. 獎勵與移轉</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">容積獎勵規定</label>
-                            <textarea id="m_bonus" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200">
+                            <span class="font-bold text-amber-900 text-xs block mb-1">容積獎勵規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="容積獎勵規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="容積獎勵規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="容積獎勵規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">容積移轉規定</label>
-                            <textarea id="m_transfer" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">容積移轉規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="容積移轉規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="容積移轉規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="容積移轉規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 8. 審議與其他管制 -->
+                <!-- 8. 審議與其他管制 (Lengkap 7 Butir Regulasi Baru) -->
                 <div class="border border-rose-100 bg-rose-50/30 p-3.5 rounded-xl">
                     <h4 class="font-bold text-rose-900 text-sm mb-2 border-b border-rose-100 pb-1">8. 審議與其他管制</h4>
                     <div class="flex flex-col gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">都市設計審議門檻</label>
-                            <textarea id="m_design_review" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+                        
+                        <!-- 都市設計審議規定 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-rose-900 text-xs block mb-1">都市設計審議規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="都市設計審議規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="都市設計審議規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="都市設計審議規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">特殊條款／個案規定</label>
-                            <textarea id="m_special_clauses" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+
+                        <!-- 特殊條款／個案規定 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">特殊條款／個案規定</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="特殊條款／個案規定_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="特殊條款／個案規定_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="特殊條款／個案規定_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 mb-1">重疊管制規定</label>
-                            <textarea id="m_overlap" rows="2" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white"></textarea>
+
+                        <!-- 文化資產範圍 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">文化資產範圍</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="文化資產範圍_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="文化資產範圍_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="文化資產範圍_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
                         </div>
+
+                        <!-- 都市更新地區 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">都市更新地區</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="都市更新地區_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="都市更新地區_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="都市更新地區_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
+                        </div>
+
+                        <!-- 山坡地範圍 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">山坡地範圍</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="山坡地範圍_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="山坡地範圍_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="山坡地範圍_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
+                        </div>
+
+                        <!-- 地質敏感區 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">地質敏感區</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="地質敏感區_狀態" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs">
+                                <input type="text" name="地質敏感區_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono">
+                                <input type="text" name="地質敏感區_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
+                        </div>
+
+                        <!-- 附帶條件 -->
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700 text-xs block mb-1">附帶條件</span>
+                            <div class="grid grid-cols-3 gap-2">
+                                <textarea name="附帶條件_狀態" rows="2" placeholder="狀態" class="col-span-2 border border-slate-300 rounded p-1 text-xs"></textarea>
+                                <input type="text" name="附帶條件_出處" placeholder="出處" class="border border-slate-300 rounded p-1 text-xs font-mono h-8">
+                                <input type="text" name="附帶條件_備註" placeholder="備註說明" class="col-span-3 border border-slate-200 rounded p-1 text-xs text-slate-500">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -237,11 +377,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">資料建立日期</label>
-                            <input type="text" id="m_created_date" placeholder="2026-09-12" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
+                            <input type="text" id="m_created_date" name="資料建立日期" placeholder="2026-09-12" class="w-full border border-slate-300 rounded p-1.5 text-sm bg-white">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-indigo-900 mb-1">選擇上傳 PDF (檔案將直接存入 PostgreSQL 資料庫)</label>
-                            <input type="file" id="m_pdf_file" accept=".pdf" class="w-full border border-slate-300 rounded p-1 text-sm bg-white">
+                            <input type="file" id="m_pdf_file" name="pdf_file" accept=".pdf" class="w-full border border-slate-300 rounded p-1 text-sm bg-white">
                             <p id="current_pdf_hint" class="text-xs text-slate-500 mt-1"></p>
                         </div>
                     </div>
@@ -261,7 +401,7 @@
         </div>
     </div>
 
-    <!-- POPUP PDF VIEWER MODAL DI ADMIN -->
+    <!-- POPUP PDF VIEWER MODAL DI ADMIN (100% Bebas Ngrok Warning) -->
     <div id="pdfModalAdmin" class="hidden fixed inset-0 bg-black/80 z-[10000] flex flex-col items-center justify-center p-3 md:p-6 animate-fade-in">
         <div class="bg-white w-full h-full max-w-6xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
@@ -336,8 +476,8 @@
                             <td class="p-3 font-bold text-purple-950">${item['使用分區／用地名稱'] || '-'}</td>
                             <td class="p-3 text-slate-600">${item['分區類別'] || '-'}</td>
                             <td class="p-3 text-slate-700 max-w-xs truncate" title="${item['計畫案名稱']}">${item['計畫案名稱'] || '-'}</td>
-                            <td class="p-3 text-center font-bold text-emerald-800">${item['建蔽率'] || '-'}</td>
-                            <td class="p-3 text-center font-bold text-amber-800">${item['容積率（基準）'] || '-'}</td>
+                            <td class="p-3 text-center font-bold text-emerald-800">${item['建蔽率_狀態'] || '-'}</td>
+                            <td class="p-3 text-center font-bold text-amber-800">${item['容積率（基準）_狀態'] || '-'}</td>
                             <td class="p-3 text-center">${pdfBadge}</td>
                             <td class="p-3 text-center">
                                 <div class="inline-flex items-center gap-1.5">
@@ -386,30 +526,15 @@
                 document.getElementById("modalTitle").innerText = `✏️ 編輯分區規定 (ID: ${data.id})`;
                 document.getElementById("form_id").value = data.id;
 
-                document.getElementById("m_zoning_doc").value = data['使用分區／用地名稱'] || '';
-                document.getElementById("m_zoning_cat").value = data['分區類別'] || '';
-                document.getElementById("m_plan_district").value = data['計畫區名稱'] || '';
-                document.getElementById("m_plan_case").value = data['計畫案名稱'] || '';
-                document.getElementById("m_version_date").value = data['版本文號／日期'] || '';
-                document.getElementById("m_pdf_snapshot").value = data['來源PDF檔名（快照）'] || '';
-                document.getElementById("m_bcr").value = data['建蔽率'] || '';
-                document.getElementById("m_far_base").value = data['容積率（基準）'] || '';
-                document.getElementById("m_far_max").value = data['容積率（上限）'] || '';
-                document.getElementById("m_height").value = data['建築物高度比／最高高度'] || '';
-                document.getElementById("m_excavation").value = data['開挖率'] || '';
-                document.getElementById("m_min_site").value = data['最小基地面積'] || '';
-                document.getElementById("m_permitted").value = data['容許使用規定'] || '';
-                document.getElementById("m_enumeration").value = data['使用項目列舉方式'] || '';
-                document.getElementById("m_setback").value = data['建築退縮規定'] || '';
-                document.getElementById("m_open_space").value = data['開放空間規定'] || '';
-                document.getElementById("m_parking").value = data['停車設置基準'] || '';
-                document.getElementById("m_loading").value = data['離街裝卸場規定'] || '';
-                document.getElementById("m_bonus").value = data['容積獎勵規定'] || '';
-                document.getElementById("m_transfer").value = data['容積移轉規定'] || '';
-                document.getElementById("m_design_review").value = data['都市設計審議門檻'] || '';
-                document.getElementById("m_special_clauses").value = data['特殊條款／個案規定'] || '';
-                document.getElementById("m_overlap").value = data['重疊管制規定'] || '';
-                document.getElementById("m_created_date").value = data['資料建立日期'] || '';
+                // Mengisi seluruh elemen input dan textarea secara otomatis sesuai atribut name
+                const form = document.getElementById("recordForm");
+                const inputs = form.querySelectorAll("input, textarea");
+                inputs.forEach(input => {
+                    const fieldName = input.name;
+                    if (fieldName && data[fieldName] !== undefined && input.type !== "file") {
+                        input.value = (data[fieldName] === null || data[fieldName] === "None" || data[fieldName] === "nan") ? "" : data[fieldName];
+                    }
+                });
 
                 if (data.has_pdf) {
                     document.getElementById("current_pdf_hint").innerHTML = `資料庫中已有 PDF: <span class="font-bold text-indigo-700">${data.pdf_filename || '已上傳'}</span> (上傳新檔可覆蓋)`;
@@ -428,36 +553,8 @@
             const id = document.getElementById("form_id").value;
             const isEdit = id !== "";
 
-            const formData = new FormData();
-            formData.append("zoning_doc", document.getElementById("m_zoning_doc").value);
-            formData.append("zoning_cat", document.getElementById("m_zoning_cat").value);
-            formData.append("plan_district", document.getElementById("m_plan_district").value);
-            formData.append("plan_case", document.getElementById("m_plan_case").value);
-            formData.append("version_date", document.getElementById("m_version_date").value);
-            formData.append("pdf_snapshot", document.getElementById("m_pdf_snapshot").value);
-            formData.append("bcr", document.getElementById("m_bcr").value);
-            formData.append("far_base", document.getElementById("m_far_base").value);
-            formData.append("far_max", document.getElementById("m_far_max").value);
-            formData.append("height", document.getElementById("m_height").value);
-            formData.append("excavation", document.getElementById("m_excavation").value);
-            formData.append("min_site", document.getElementById("m_min_site").value);
-            formData.append("permitted", document.getElementById("m_permitted").value);
-            formData.append("enumeration", document.getElementById("m_enumeration").value);
-            formData.append("setback", document.getElementById("m_setback").value);
-            formData.append("open_space", document.getElementById("m_open_space").value);
-            formData.append("parking", document.getElementById("m_parking").value);
-            formData.append("loading", document.getElementById("m_loading").value);
-            formData.append("bonus", document.getElementById("m_bonus").value);
-            formData.append("transfer", document.getElementById("m_transfer").value);
-            formData.append("design_review", document.getElementById("m_design_review").value);
-            formData.append("special_clauses", document.getElementById("m_special_clauses").value);
-            formData.append("overlap", document.getElementById("m_overlap").value);
-            formData.append("created_date", document.getElementById("m_created_date").value);
-
-            const fileInput = document.getElementById("m_pdf_file");
-            if (fileInput.files.length > 0) {
-                formData.append("pdf_file", fileInput.files[0]);
-            }
+            const form = document.getElementById("recordForm");
+            const formData = new FormData(form);
 
             const url = isEdit ? `${API_BASE_URL}/api/v1/zoning-records/${id}` : `${API_BASE_URL}/api/v1/zoning-records`;
             const method = isEdit ? "PUT" : "POST";
