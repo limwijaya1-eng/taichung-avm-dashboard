@@ -19,17 +19,21 @@
 </head>
 <body class="bg-slate-100 h-screen flex flex-col relative text-slate-800">
 
-    <!-- Header dengan Navigasi ke admin.html -->
+    <!-- Header dengan Navigasi ke admin.html dan Layar Baru avm.html -->
     <header class="bg-slate-900 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-2.5">
             <span class="text-2xl">🏛️</span>
             <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-wide">Taichung City Land Valuation (AVM) Dashboard</h1>
         </div>
-        <div class="flex items-center gap-2.5 w-full sm:w-auto">
-            <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg shadow-inner text-gray-800 w-full sm:w-80">
+        <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg shadow-inner text-gray-800 w-full sm:w-72">
                 <input type="text" id="addressInput" placeholder="輸入查詢門牌 (例: 惠民路71號 或 東昇路423號)" class="px-3 py-1 text-sm md:text-base w-full focus:outline-none">
-                <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 text-sm md:text-base font-semibold rounded-md transition cursor-pointer">Search</button>
+                <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-sm font-semibold rounded-md transition cursor-pointer">Search</button>
             </div>
+            <!-- TOMBOL MENUJU LAYAR BARU AVM -->
+            <button onclick="goToAvmPage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer">
+                📊 估價計算 (AVM)
+            </button>
             <a href="admin.html" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1 shrink-0 shadow-sm">
                 ⚙️ 法規維護
             </a>
@@ -164,7 +168,7 @@
                     </div>
                 </section>
 
-                <!-- 8. 審議與其他管制 (Lengkap 7 Butir Regulasi Granular Baru) -->
+                <!-- 8. 審議與其他管制 -->
                 <section class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50">
                     <h2 class="text-base font-black uppercase text-rose-700 tracking-wide border-b border-rose-100 pb-1.5 mb-3 flex items-center gap-2">
                         <span class="w-2 h-4 bg-rose-600 rounded-sm"></span>8. 審議與其他管制
@@ -191,7 +195,7 @@
                     </div>
                 </section>
 
-                <!-- 10. PDF 原始文件 (Buka Langsung dengan Modal Bebas Warning Ngrok) -->
+                <!-- 10. PDF 原始文件 -->
                 <section class="border-2 border-dashed border-indigo-300 rounded-xl p-3.5 bg-indigo-50/40">
                     <h2 class="text-base font-black uppercase text-indigo-900 tracking-wide mb-2 flex items-center gap-2">
                         <span class="text-lg">📄</span>法規原始文件（PDF）
@@ -225,7 +229,7 @@
         </div>
     </div>
 
-    <!-- POPUP 2: PDF INLINE VIEWER MODAL (100% BEBAS NGROK WARNING) -->
+    <!-- POPUP 2: PDF INLINE VIEWER MODAL -->
     <div id="pdfModal" class="hidden fixed inset-0 bg-black/80 z-[10000] flex flex-col items-center justify-center p-3 md:p-6 animate-fade-in">
         <div class="bg-white w-full h-full max-w-6xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
@@ -256,6 +260,19 @@
         let baseWidth = 0; 
         let activePdfBlobUrl = null;
 
+        // Variabel penampung posisi koordinat & alamat aktif
+        let currentActiveAddress = "";
+        let currentActiveLat = 24.1793;
+        let currentActiveLng = 120.6499;
+
+        // Navigasi ke Layar Baru AVM dengan membawa parameter URL
+        function goToAvmPage() {
+            const addrInput = document.getElementById('addressInput').value.trim();
+            const addr = currentActiveAddress || addrInput || "臺中市西屯區惠民路71號";
+            const targetUrl = `avm.html?address=${encodeURIComponent(addr)}&lat=${currentActiveLat}&lng=${currentActiveLng}`;
+            window.open(targetUrl, '_blank');
+        }
+
         async function searchAddress() {
             const fullAddress = document.getElementById('addressInput').value;
             if (!fullAddress) return alert("請輸入地址！");
@@ -265,6 +282,11 @@
                 });
                 if (!response.ok) throw new Error("Query Failed.");
                 const data = await response.json();
+                
+                currentActiveAddress = data.full_address;
+                currentActiveLat = data.wgs84_latitude;
+                currentActiveLng = data.wgs84_longitude;
+
                 updateDashboardUI(data);
                 updateMapMarker(data.wgs84_latitude, data.wgs84_longitude, data.full_address);
             } catch (error) { alert(error.message); }
@@ -280,6 +302,11 @@
                 const data = await response.json();
                 data.full_address = `座標查詢點 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 data.wgs84_latitude = lat; data.wgs84_longitude = lng;
+
+                currentActiveAddress = data.full_address;
+                currentActiveLat = lat;
+                currentActiveLng = lng;
+
                 updateDashboardUI(data);
             } catch (error) { console.error(error); }
         });
@@ -291,7 +318,6 @@
             if (el) el.innerText = value || "-";
         }
 
-        // Helper untuk merender kartu granular (狀態 + 出處 + 備註)
         function renderRegulationCard(containerId, label, statusVal, sourceVal, noteVal, isHighlight = false) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -319,7 +345,6 @@
                 `;
             }
 
-            // Link gambar diagram 圖七、圖八
             if (html.includes("圖七")) {
                 html = html.replaceAll("圖七", `<span onclick="openModal('figure7.jpg', '圖七 指定留設公共開放空間示意圖')" class="text-purple-700 font-bold underline cursor-pointer hover:text-purple-900 inline-flex items-center gap-0.5">🖼️ 圖七</span>`);
             }
@@ -385,7 +410,6 @@
             zoomManual(direction * 0.15);
         }, { passive: false });
 
-        // BUKA PDF LANGSUNG DI MODAL (100% BYPASS NGROK INTERRUPT)
         async function openPdfInModal(recordId, filename) {
             const btn = document.getElementById(`pdfBtn_${recordId}`);
             if (btn) {
@@ -395,9 +419,7 @@
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/zoning-records/${recordId}/pdf`, {
-                    headers: {
-                        "ngrok-skip-browser-warning": "true"
-                    }
+                    headers: { "ngrok-skip-browser-warning": "true" }
                 });
                 
                 if (!response.ok) throw new Error("無法從資料庫讀取 PDF。");
@@ -433,24 +455,20 @@
         }
 
         function updateDashboardUI(data) {
-            // Location
             safeSetText('resAddress', def_clean(data.full_address));
             safeSetText('resCoords', `Lat: ${data.wgs84_latitude}, Lng: ${data.wgs84_longitude}`);
             safeSetText('resDistrict', def_clean(data.district));
             safeSetText('resZoningType', def_clean(data.zoning_type));
 
-            // 1. 基本資訊
             safeSetText('f_plan_district', def_clean(data['計畫區名稱']));
             safeSetText('f_plan_case', def_clean(data['計畫案名稱']));
             const resolvedZoningDoc = data['使用分區／用地名稱'] || data.zoning_type || '-';
             safeSetText('f_zoning_doc', def_clean(resolvedZoningDoc));
             safeSetText('f_zoning_cat', def_clean(data['分區類別']));
 
-            // 2. 版本治理
             safeSetText('f_version_date', def_clean(data['版本文號／日期']));
             safeSetText('f_pdf_snapshot', def_clean(data['來源PDF檔名（快照）']));
 
-            // 3. 強度管制 (狀態 + 出處 + 備註)
             renderRegulationCard('box_bcr', '建蔽率', data['建蔽率_狀態'], data['建蔽率_出處'], data['建蔽率_備註'], true);
             renderRegulationCard('box_far_base', '容積率（基準）', data['容積率（基準）_狀態'], data['容積率（基準）_出處'], data['容積率（基準）_備註'], true);
             renderRegulationCard('box_far_max', '容積率（上限）', data['容積率（上限）_狀態'], data['容積率（上限）_出處'], data['容積率（上限）_備註']);
@@ -458,23 +476,18 @@
             renderRegulationCard('box_excavation', '開挖率', data['開挖率_狀態'], data['開挖率_出處'], data['開挖率_備註']);
             renderRegulationCard('box_min_site', '最小基地面積', data['最小基地面積_狀態'], data['最小基地面積_出處'], data['最小基地面積_備註']);
 
-            // 4. 使用管制
             renderRegulationCard('box_permitted', '容許使用規定', data['容許使用規定_狀態'], data['容許使用規定_出處'], data['容許使用規定_備註']);
             renderRegulationCard('box_enumeration', '使用項目列舉方式', data['使用項目列舉方式_狀態'], data['使用項目列舉方式_出處'], data['使用項目列舉方式_備註']);
 
-            // 5. 退縮與開放空間
             renderRegulationCard('box_setback', '建築退縮規定', data['建築退縮規定_狀態'], data['建築退縮規定_出處'], data['建築退縮規定_備註']);
             renderRegulationCard('box_open_space', '開放空間規定', data['開放空間規定_狀態'], data['開放空間規定_出處'], data['開放空間規定_備註']);
 
-            // 6. 停車與裝卸
             renderRegulationCard('box_parking', '停車設置基準', data['停車設置基準_狀態'], data['停車設置基準_出處'], data['停車設置基準_備註']);
             renderRegulationCard('box_loading', '離街裝卸場規定', data['離街裝卸場規定_狀態'], data['離街裝卸場規定_出處'], data['離街裝卸場規定_備註']);
 
-            // 7. 獎勵與移轉
             renderRegulationCard('box_bonus', '容積獎勵規定', data['容積獎勵規定_狀態'], data['容積獎勵規定_出處'], data['容積獎勵規定_備註']);
             renderRegulationCard('box_transfer', '容積移轉規定', data['容積移轉規定_狀態'], data['容積移轉規定_出處'], data['容積移轉規定_備註']);
 
-            // 8. 審議與其他管制 (Lengkap 7 Butir Regulasi Granular Baru)
             renderRegulationCard('box_design_review', '都市設計審議規定', data['都市設計審議規定_狀態'], data['都市設計審議規定_出處'], data['都市設計審議規定_備註']);
             renderRegulationCard('box_special_clauses', '特殊條款／個案規定', data['特殊條款／個案規定_狀態'], data['特殊條款／個案規定_出處'], data['特殊條款／個案規定_備註']);
             renderRegulationCard('box_heritage', '文化資產範圍', data['文化資產範圍_狀態'], data['文化資產範圍_出處'], data['文化資產範圍_備註']);
@@ -483,10 +496,8 @@
             renderRegulationCard('box_geological', '地質敏感區', data['地質敏感區_狀態'], data['地質敏感區_出處'], data['地質敏感區_備註']);
             renderRegulationCard('box_conditions', '附帶條件', data['附帶條件_狀態'], data['附帶條件_出處'], data['附帶條件_備註']);
 
-            // 9. 治理
             safeSetText('f_data_date', def_clean(data['資料建立日期']));
 
-            // 10. PDF ACTION AREA: Buka via Modal Blob
             const recordId = data.id;
             const pdfFilename = data.pdf_filename;
             const pdfActionBox = document.getElementById('pdfActionArea');
