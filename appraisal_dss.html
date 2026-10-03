@@ -258,7 +258,7 @@
         let compMarkersGroup = null;
         let latestRetrievalData = null;
 
-        // Inisialisasi Default Tanggal Valuasi = Hari Ini
+        // Inisialisasi Default Tanggal Valuasi = Hari Ini (Today)
         window.addEventListener('DOMContentLoaded', () => {
             const todayStr = new Date().toISOString().slice(0, 10);
             document.getElementById('valuationDate').value = todayStr;
@@ -274,7 +274,6 @@
             document.getElementById('targetLat').value = lat;
             document.getElementById('targetLng').value = lng;
 
-            // Inisialisasi Leaflet
             dssMap = L.map('dssMap').setView([lat, lng], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(dssMap);
             compMarkersGroup = L.layerGroup().addTo(dssMap);
@@ -339,7 +338,7 @@
             document.getElementById('resMeanSim').innerText = `${(data.mean_composite_similarity * 100).toFixed(1)}%`;
             document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
 
-            // Render Own History
+            // Render Own History jika ada
             const ownHistCard = document.getElementById('ownHistoryCard');
             const ownHistTbody = document.getElementById('ownHistoryTableBody');
             ownHistTbody.innerHTML = "";
@@ -475,7 +474,10 @@
                 building_area: parseFloat(document.getElementById('bldg_area').value) || 100,
                 land_area: parseFloat(document.getElementById('land_area').value) || 25,
                 floor: parseInt(document.getElementById('floor').value) || 3,
-                total_floors: parseInt(document.getElementById('total_floors').value) || 7
+                total_floors: parseInt(document.getElementById('total_floors').value) || 7,
+                zoning_name: "第二種住宅區",
+                bcr_far: "60% / 220%",
+                parking_availability: parseInt(document.getElementById('parking').value)
             };
 
             const payload = {
