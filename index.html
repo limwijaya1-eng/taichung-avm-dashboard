@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taichung Land Valuation AVM Dashboard</title>
+    <title>Taichung City Land & Property Appraisal System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -19,20 +19,20 @@
 </head>
 <body class="bg-slate-100 h-screen flex flex-col relative text-slate-800">
 
-    <!-- Header dengan Navigasi ke admin.html dan Layar Baru avm.html -->
+    <!-- Header dengan Navigasi ke appraisal_dss.html dan admin.html -->
     <header class="bg-slate-900 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-2.5">
             <span class="text-2xl">🏛️</span>
-            <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-wide">Taichung City Land Valuation (AVM) Dashboard</h1>
+            <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-wide">Taichung City Land & Property Appraisal System</h1>
         </div>
         <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg shadow-inner text-gray-800 w-full sm:w-72">
                 <input type="text" id="addressInput" placeholder="輸入查詢門牌 (例: 惠民路71號 或 東昇路423號)" class="px-3 py-1 text-sm md:text-base w-full focus:outline-none">
                 <button onclick="searchAddress()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-sm font-semibold rounded-md transition cursor-pointer">Search</button>
             </div>
-            <!-- TOMBOL MENUJU LAYAR BARU AVM -->
-            <button onclick="goToAvmPage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer">
-                📊 估價計算 (AVM)
+            <!-- TOMBOL MENUJU LAYAR BARU APPRAISAL DSS (TOP-10 COMPARABLES) -->
+            <button onclick="goToDssPage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer">
+                🏛️ 估價比準 (DSS)
             </button>
             <a href="admin.html" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1 shrink-0 shadow-sm">
                 ⚙️ 法規維護
@@ -262,15 +262,22 @@
 
         // Variabel penampung posisi koordinat & alamat aktif
         let currentActiveAddress = "";
+        let currentActiveDistrict = "西屯區";
         let currentActiveLat = 24.1793;
         let currentActiveLng = 120.6499;
 
-        // Navigasi ke Layar Baru AVM dengan membawa parameter URL
-        function goToAvmPage() {
+        // Navigasi ke Layar Baru Appraisal DSS (Top-10 Comparables)
+        function goToDssPage() {
             const addrInput = document.getElementById('addressInput').value.trim();
             const addr = currentActiveAddress || addrInput || "臺中市西屯區惠民路71號";
-            const targetUrl = `avm.html?address=${encodeURIComponent(addr)}&lat=${currentActiveLat}&lng=${currentActiveLng}`;
+            const dist = currentActiveDistrict || "西屯區";
+            const targetUrl = `appraisal_dss.html?address=${encodeURIComponent(addr)}&district=${encodeURIComponent(dist)}&lat=${currentActiveLat}&lng=${currentActiveLng}`;
             window.open(targetUrl, '_blank');
+        }
+
+        // Alias penahan kompatibilitas jika masih ada pemanggilan goToAvmPage
+        function goToAvmPage() {
+            goToDssPage();
         }
 
         async function searchAddress() {
@@ -284,6 +291,7 @@
                 const data = await response.json();
                 
                 currentActiveAddress = data.full_address;
+                currentActiveDistrict = data.district || "西屯區";
                 currentActiveLat = data.wgs84_latitude;
                 currentActiveLng = data.wgs84_longitude;
 
@@ -304,6 +312,7 @@
                 data.wgs84_latitude = lat; data.wgs84_longitude = lng;
 
                 currentActiveAddress = data.full_address;
+                currentActiveDistrict = data.district || "西屯區";
                 currentActiveLat = lat;
                 currentActiveLng = lng;
 
