@@ -23,7 +23,7 @@
             <span class="text-3xl">🏛️</span>
             <div>
                 <h1 class="text-xl md:text-2xl font-bold tracking-wide">臺中市不動產估價比準決策支援系統 (Appraisal DSS)</h1>
-                <p class="text-sm text-slate-300 mt-0.5">雙塔度量學習檢索 → 10 筆相似比較標的篩選 → 期日修正參考 → 估價比準表匯出</p>
+                <p class="text-sm text-slate-300 mt-0.5">雙塔度量學習推薦 10 筆標的 → 估價師精選 3 筆比較案例 → 產製標準估價比準報告書</p>
             </div>
         </div>
         <div class="flex items-center gap-4">
@@ -48,7 +48,7 @@
             <div class="flex flex-wrap items-center gap-3 shrink-0 text-base">
                 <div>
                     <span class="text-sm font-medium text-slate-500 block">價格日期 (Valuation Date)</span>
-                    <input type="date" id="valuationDate" value="2026-06-30" class="font-mono font-bold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 text-base">
+                    <input type="date" id="valuationDate" class="font-mono font-bold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 text-base">
                 </div>
                 <div>
                     <span class="text-sm font-medium text-slate-500 block">行政區</span>
@@ -167,9 +167,12 @@
                         平均距離: <b id="resMeanDist" class="text-amber-300 font-mono text-base">-</b>
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="exportComparableGridCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2 text-base cursor-pointer">
-                        <span>📥</span> 下載估價比準表 (Export CSV Grid)
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="exportFullExcelReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2 text-base cursor-pointer">
+                        <span>📊</span> 匯出估價報告書 (Excel 4 工作表)
+                    </button>
+                    <button onclick="exportComparableGridCSV()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 text-sm cursor-pointer">
+                        <span>📥</span> 匯出 10 筆母體清單 (CSV)
                     </button>
                 </div>
             </div>
@@ -216,14 +219,17 @@
                         <h3 class="font-black text-slate-800 text-base md:text-lg flex items-center gap-2">
                             <span>🔍</span> Top-10 比較標的估價比準清單 (Comparable Evidence Grid)
                         </h3>
-                        <p class="text-sm text-slate-500 mt-0.5">提供物理相似度 (s_p)、環境相似度 (s_n)、期日修正參考率及修正後單價供估價師裁量</p>
+                        <p class="text-sm text-slate-500 mt-0.5">請估價師勾選 3 筆最適比較標的（系統預設勾選 Top 1~3），即可匯出正式報告表格</p>
                     </div>
-                    <span class="text-sm bg-slate-100 text-slate-700 px-3 py-1 rounded font-mono font-medium">Top-10 Ranking</span>
+                    <span id="selectedCountBadge" class="text-sm bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded font-bold">
+                        已勾選: 3 / 3 筆
+                    </span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm md:text-base">
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                                <th class="p-3 text-center">選取</th>
                                 <th class="p-3">序號</th>
                                 <th class="p-3">門牌地址 / 交易日期</th>
                                 <th class="p-3 text-center">建物條件</th>
@@ -252,13 +258,19 @@
         let compMarkersGroup = null;
         let latestRetrievalData = null;
 
+        // Inisialisasi Default Tanggal Valuasi = Hari Ini
         window.addEventListener('DOMContentLoaded', () => {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            document.getElementById('valuationDate').value = todayStr;
+
             const params = new URLSearchParams(window.location.search);
             const address = params.get('address') || "臺中市西屯區惠民路71號";
+            const district = params.get('district') || "西屯區";
             const lat = parseFloat(params.get('lat')) || 24.1793;
             const lng = parseFloat(params.get('lng')) || 120.6499;
 
             document.getElementById('targetAddress').value = address;
+            document.getElementById('targetDistrict').value = district;
             document.getElementById('targetLat').value = lat;
             document.getElementById('targetLng').value = lng;
 
@@ -327,7 +339,7 @@
             document.getElementById('resMeanSim').innerText = `${(data.mean_composite_similarity * 100).toFixed(1)}%`;
             document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
 
-            // Render Own History jika ada
+            // Render Own History
             const ownHistCard = document.getElementById('ownHistoryCard');
             const ownHistTbody = document.getElementById('ownHistoryTableBody');
             ownHistTbody.innerHTML = "";
@@ -358,8 +370,12 @@
                 tr.className = "hover:bg-slate-50 transition";
                 
                 const roundedAge = Number(comp.building_age).toFixed(1);
+                const isPreChecked = idx < 3 ? "checked" : "";
 
                 tr.innerHTML = `
+                    <td class="p-3 text-center">
+                        <input type="checkbox" name="compCheckbox" value="${idx}" ${isPreChecked} onchange="updateSelectedCount()" class="w-5 h-5 accent-indigo-600 cursor-pointer">
+                    </td>
                     <td class="p-3 font-bold text-slate-700 text-base">#${comp.rank}</td>
                     <td class="p-3">
                         <div class="font-bold text-slate-900 text-base">${comp.address}</div>
@@ -393,7 +409,6 @@
                 `;
                 tbody.appendChild(tr);
 
-                // Tambah Marker ke Peta
                 if (comp.latitude && comp.longitude) {
                     bounds.extend([comp.latitude, comp.longitude]);
                     const compMarker = L.circleMarker([comp.latitude, comp.longitude], {
@@ -418,13 +433,85 @@
                 }
             });
 
+            updateSelectedCount();
+
             setTimeout(() => {
                 dssMap.invalidateSize();
                 dssMap.fitBounds(bounds, { padding: [40, 40] });
             }, 200);
         }
 
-        // Fungsi Ekspor CSV Kisi Penilaian
+        function updateSelectedCount() {
+            const checked = document.querySelectorAll('input[name="compCheckbox"]:checked');
+            const badge = document.getElementById('selectedCountBadge');
+            badge.innerText = `已勾選: ${checked.length} / 3 筆`;
+            if (checked.length === 3) {
+                badge.className = "text-sm bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1 rounded font-bold";
+            } else {
+                badge.className = "text-sm bg-amber-50 text-amber-800 border border-amber-300 px-3 py-1 rounded font-bold";
+            }
+        }
+
+        // Ekspor 1 File Excel (.xlsx) dengan 4 Sheet Resmi Penilai
+        async function exportFullExcelReport() {
+            if (!latestRetrievalData || !latestRetrievalData.top10_comparables) {
+                return alert("尚未檢索比較標的，無法匯出！");
+            }
+
+            const checkedBoxes = document.querySelectorAll('input[name="compCheckbox"]:checked');
+            if (checkedBoxes.length !== 3) {
+                return alert(`依據估價規範，請精確勾選 3 筆比較標的！目前已勾選 ${checkedBoxes.length} 筆。`);
+            }
+
+            const selectedIndices = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+            const selectedComps = selectedIndices.map(idx => latestRetrievalData.top10_comparables[idx]);
+
+            const subjectPayload = {
+                address: document.getElementById('targetAddress').value.trim(),
+                bldg_type: document.getElementById('bldg_type').value,
+                main_use: document.getElementById('main_use').value,
+                material: document.getElementById('material').value,
+                building_age: parseFloat(document.getElementById('age').value),
+                building_area: parseFloat(document.getElementById('bldg_area').value) || 100,
+                land_area: parseFloat(document.getElementById('land_area').value) || 25,
+                floor: parseInt(document.getElementById('floor').value) || 3,
+                total_floors: parseInt(document.getElementById('total_floors').value) || 7
+            };
+
+            const payload = {
+                subject: subjectPayload,
+                selected_comparables: selectedComps,
+                valuation_date: document.getElementById('valuationDate').value,
+                district: document.getElementById('targetDistrict').value.trim()
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/appraisal/export-excel`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("匯出 Excel 失敗。");
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Taichung_Appraisal_Report_4Tables_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("匯出發生錯誤: " + err.message);
+            }
+        }
+
+        // Ekspor 10 Pembanding Lengkap (CSV)
         function exportComparableGridCSV() {
             if (!latestRetrievalData || !latestRetrievalData.top10_comparables) {
                 return alert("尚未檢索比較標的，無法匯出！");
