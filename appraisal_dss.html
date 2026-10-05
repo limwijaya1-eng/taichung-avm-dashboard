@@ -203,7 +203,7 @@
                         <thead>
                             <tr class="bg-purple-100 text-purple-900 font-bold border-b border-purple-200">
                                 <th class="p-2.5">歷史交易日期</th>
-                                <th class="p-2.5 text-right">當時成交單價 (NTD/m²)</th>
+                                <th class="p-2.5 text-right">當時成交單價 (NTD/坪)</th>
                                 <th class="p-2.5 text-right">當時成交總價 (NTD)</th>
                             </tr>
                         </thead>
@@ -259,7 +259,6 @@
         let compMarkersGroup = null;
         let latestRetrievalData = null;
 
-        // Metadata Zonasi Subjek Target dari Halaman Index
         let targetZoningData = {
             zoning_type: "第二種住宅區",
             bcr_far: "60%/220%",
@@ -288,7 +287,7 @@
 
             targetMarker = L.marker([lat, lng]).addTo(dssMap).bindPopup(`<b>勘估標的物</b><br>${address}`).openPopup();
 
-            // Panggil API geocode/spatial query persis seperti di index.html untuk mengambil data zonasi target
+            // Panggil fungsi kueri spasial seperti di index.html untuk mengambil zonasi target
             try {
                 const zResp = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
                     headers: { "ngrok-skip-browser-warning": "true" }
@@ -405,7 +404,7 @@
                     <td class="p-3 font-bold text-slate-700 text-base">#${comp.rank}</td>
                     <td class="p-3">
                         <div class="font-bold text-slate-900 text-base">${comp.address}</div>
-                        <div class="text-xs text-slate-500 font-mono mt-0.5">交易日期: ${comp.transaction_date}</div>
+                        <div class="text-xs text-slate-500 font-mono mt-0.5">交易日期: ${comp.transaction_date_roc_chinese || comp.transaction_date}</div>
                     </td>
                     <td class="p-3 text-center font-mono font-bold text-slate-800 text-sm">
                         ${comp.land_parcel_raw || '-'}
@@ -454,7 +453,7 @@
                             <div class="font-bold text-orange-800">比較標的 #${comp.rank}</div>
                             <div class="font-semibold text-slate-800">${comp.address}</div>
                             <div>地號 (8碼): <b>${comp.land_parcel_raw || '-'}</b></div>
-                            <div>交易日期: <b>${comp.transaction_date}</b></div>
+                            <div>交易日期: <b>${comp.transaction_date_roc_chinese || comp.transaction_date}</b></div>
                             <div>成交單價: <b>${pingPrice.toLocaleString()}</b> 元/坪</div>
                             <div>期日修正後單價: <b class="text-indigo-900">${adjPingPrice.toLocaleString()}</b> 元/坪</div>
                             <div>綜合相似度: <b>${(comp.composite_similarity * 100).toFixed(1)}%</b></div>
@@ -574,7 +573,7 @@
                     `"${r.address}"`,
                     `"${r.district}"`,
                     `"${r.land_parcel_raw || ''}"`,
-                    `"${r.transaction_date}"`,
+                    `"${r.transaction_date_roc_chinese || r.transaction_date}"`,
                     r.distance_m,
                     `"${r.bldg_type}"`,
                     `"${r.main_use}"`,
