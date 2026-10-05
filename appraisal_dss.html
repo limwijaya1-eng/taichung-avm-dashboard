@@ -263,7 +263,10 @@
             zoning_type: "第二種住宅區",
             bcr_far: "60%/220%",
             master_plan: "",
-            district: "西屯區"
+            district: "西屯區",
+            land_parcel_raw: "",
+            land_section_name: "",
+            construction_date_roc: ""
         };
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -271,10 +274,10 @@
             document.getElementById('valuationDate').value = todayStr;
 
             const params = new URLSearchParams(window.location.search);
-            const address = params.get('address') || "臺中市西屯區惠民路71號";
-            const district = params.get('district') || "西屯區";
-            const lat = parseFloat(params.get('lat')) || 24.1793;
-            const lng = parseFloat(params.get('lng')) || 120.6499;
+            const address = params.get('address') || "仁和里崇德八路一段１７７號十樓之１";
+            const district = params.get('district') || "北屯區";
+            const lat = parseFloat(params.get('lat')) || 24.1833;
+            const lng = parseFloat(params.get('lng')) || 120.6811;
 
             document.getElementById('targetAddress').value = address;
             document.getElementById('targetDistrict').value = district;
@@ -344,6 +347,12 @@
                 if (!response.ok) throw new Error("檢索請求失敗。");
                 const data = await response.json();
                 latestRetrievalData = data;
+
+                if (data.target_cadastral) {
+                    targetZoningData.land_parcel_raw = data.target_cadastral.land_parcel_raw || "";
+                    targetZoningData.land_section_name = data.target_cadastral.land_section_name || "";
+                    targetZoningData.construction_date_roc = data.target_cadastral.construction_date_roc || "";
+                }
 
                 renderRetrievalResults(data, payload.wgs84_latitude, payload.wgs84_longitude);
             } catch (err) {
@@ -451,6 +460,7 @@
                             <div class="font-bold text-orange-800">比較標的 #${comp.rank}</div>
                             <div class="font-semibold text-slate-800">${comp.address}</div>
                             <div>地號 (8碼): <b>${comp.land_parcel_raw || '-'}</b></div>
+                            <div>完工日: <b>${comp.construction_date_roc || '-'}</b></div>
                             <div>交易日期: <b>${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</b></div>
                             <div>成交單價: <b>${pingPrice.toLocaleString()}</b> 元/坪</div>
                             <div>期日修正率 (C): <b class="text-purple-800">${timeAdjPercent}</b></div>
@@ -505,6 +515,9 @@
                 total_floors: parseInt(document.getElementById('total_floors').value) || 7,
                 zoning_name: targetZoningData.zoning_type,
                 bcr_far: targetZoningData.bcr_far,
+                land_parcel_raw: targetZoningData.land_parcel_raw,
+                land_section_name: targetZoningData.land_section_name,
+                construction_date_roc: targetZoningData.construction_date_roc,
                 parking_availability: parseInt(document.getElementById('parking').value)
             };
 
@@ -549,11 +562,11 @@
             const rows = latestRetrievalData.top10_comparables;
             const headers = [
                 "序號 (Rank)", "比較標的編號 (ID)", "門牌地址 (Address)", "行政區 (District)",
-                "地號 (Land_Parcel_8Digits)", "交易日期 (Date)", "空間距離 (Distance_m)", "建物型態 (Bldg_Type)",
-                "主要用途 (Use)", "屋齡 (Age_Years)", "建物面積 (Area_m2)", "土地面積 (Land_m2)",
-                "所在樓層 (Floor)", "總樓層 (Total_Floors)", "物理相似度 (Property_Sim)",
-                "環境相似度 (Neighborhood_Sim)", "綜合相似度 (Composite_Sim)", "正規化權重 (Norm_Weight)",
-                "成交單價元平方公尺 (Raw_Unit_Price_m2)", "換算單價元坪 (Raw_Unit_Price_Ping)",
+                "地號 (Land_Parcel_8Digits)", "完工日 (Construction_Date)", "交易日期 (Date)",
+                "空間距離 (Distance_m)", "建物型態 (Bldg_Type)", "主要用途 (Use)", "屋齡 (Age_Years)",
+                "建物面積 (Area_m2)", "土地面積 (Land_m2)", "所在樓層 (Floor)", "總樓層 (Total_Floors)",
+                "物理相似度 (Property_Sim)", "環境相似度 (Neighborhood_Sim)", "綜合相似度 (Composite_Sim)",
+                "正規化權重 (Norm_Weight)", "成交單價元平方公尺 (Raw_Unit_Price_m2)", "換算單價元坪 (Raw_Unit_Price_Ping)",
                 "期日修正參考率 (Time_Adj_Rate)", "修正後單價元坪 (Adjusted_Unit_Price_Ping)"
             ];
 
@@ -570,6 +583,7 @@
                     `"${r.address}"`,
                     `"${r.district}"`,
                     `"${r.land_parcel_raw || ''}"`,
+                    `"${r.construction_date_roc || ''}"`,
                     `"${r.transaction_date_roc_chinese || r.raw_transaction_date}"`,
                     r.distance_m,
                     `"${r.bldg_type}"`,
