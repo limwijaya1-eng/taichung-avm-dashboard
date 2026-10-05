@@ -232,14 +232,15 @@
                                 <th class="p-3 text-center">選取</th>
                                 <th class="p-3">序號</th>
                                 <th class="p-3">門牌地址 / 交易日期</th>
+                                <th class="p-3 text-center">地號 (8碼)</th>
                                 <th class="p-3 text-center">建物條件</th>
                                 <th class="p-3 text-center">距離</th>
                                 <th class="p-3 text-center">物理 (s_p)</th>
                                 <th class="p-3 text-center">環境 (s_n)</th>
                                 <th class="p-3 text-center">綜合相似 (S)</th>
-                                <th class="p-3 text-right">成交單價 (元/m²)</th>
+                                <th class="p-3 text-right">成交單價 (元/坪)</th>
                                 <th class="p-3 text-center">期日修正率</th>
-                                <th class="p-3 text-right text-indigo-900">修正後單價 (元/m²)</th>
+                                <th class="p-3 text-right text-indigo-900">修正後單價 (元/坪)</th>
                             </tr>
                         </thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
@@ -258,8 +259,15 @@
         let compMarkersGroup = null;
         let latestRetrievalData = null;
 
-        // Inisialisasi Default Tanggal Valuasi = Hari Ini (Today)
-        window.addEventListener('DOMContentLoaded', () => {
+        // Metadata Zonasi Subjek Target dari Halaman Index
+        let targetZoningData = {
+            zoning_type: "第二種住宅區",
+            bcr_far: "60%/220%",
+            master_plan: "",
+            district: "西屯區"
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
             const todayStr = new Date().toISOString().slice(0, 10);
             document.getElementById('valuationDate').value = todayStr;
 
@@ -279,6 +287,23 @@
             compMarkersGroup = L.layerGroup().addTo(dssMap);
 
             targetMarker = L.marker([lat, lng]).addTo(dssMap).bindPopup(`<b>勘估標的物</b><br>${address}`).openPopup();
+
+            // Panggil API geocode/spatial query persis seperti di index.html untuk mengambil data zonasi target
+            try {
+                const zResp = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                if (zResp.ok) {
+                    const zData = await zResp.json();
+                    targetZoningData.zoning_type = zData['使用分區'] || zData['zoning_type'] || "第二種住宅區";
+                    const bcr = zData['建蔽率_狀態'] || "";
+                    const far = zData['容積率（基準）_狀態'] || "";
+                    targetZoningData.bcr_far = (bcr || far) ? `${bcr}/${far}` : "60%/220%";
+                    targetZoningData.master_plan = zData['都市計畫區'] || "";
+                }
+            } catch (e) {
+                console.warn("Gagal memuat detail zonasi target:", e);
+            }
         });
 
         async function runComparableRetrieval() {
@@ -348,7 +373,7 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="p-2.5">${h.transaction_date}</td>
-                        <td class="p-2.5 text-right font-bold">${Math.round(h.raw_unit_price_m2).toLocaleString()} 元</td>
+                        <td class="p-2.5 text-right font-bold">${Math.round(h.raw_unit_price_m2 * 3.305785).toLocaleString()} 元/坪</td>
                         <td class="p-2.5 text-right">${Math.round(h.total_price_ntd).toLocaleString()} 元</td>
                     `;
                     ownHistTbody.appendChild(tr);
@@ -370,6 +395,8 @@
                 
                 const roundedAge = Number(comp.building_age).toFixed(1);
                 const isPreChecked = idx < 3 ? "checked" : "";
+                const pingPrice = Math.round(comp.raw_unit_price_m2 * 3.305785);
+                const adjPingPrice = Math.round(comp.ref_adjusted_unit_price_m2 * 3.305785);
 
                 tr.innerHTML = `
                     <td class="p-3 text-center">
@@ -380,9 +407,12 @@
                         <div class="font-bold text-slate-900 text-base">${comp.address}</div>
                         <div class="text-xs text-slate-500 font-mono mt-0.5">交易日期: ${comp.transaction_date}</div>
                     </td>
+                    <td class="p-3 text-center font-mono font-bold text-slate-800 text-sm">
+                        ${comp.land_parcel_raw || '-'}
+                    </td>
                     <td class="p-3 text-center">
                         <span class="bg-slate-100 text-slate-800 px-2.5 py-1 rounded text-xs font-semibold">${comp.bldg_type}</span>
-                        <div class="text-xs text-slate-500 mt-1">屋齡 ${roundedAge} 年 | ${comp.building_area} m²</div>
+                        <div class="text-xs text-slate-500 mt-1">屋齡 ${roundedAge} 年 | ${(comp.building_area * 0.3025).toFixed(1)} 坪</div>
                     </td>
                     <td class="p-3 text-center font-mono text-sm">
                         ${comp.distance_m < 1000 ? `${Math.round(comp.distance_m)} m` : `${(comp.distance_m / 1000).toFixed(2)} km`}
@@ -397,13 +427,13 @@
                         ${(comp.composite_similarity * 100).toFixed(1)}%
                     </td>
                     <td class="p-3 text-right font-mono font-bold text-slate-700 text-base">
-                        ${Math.round(comp.raw_unit_price_m2).toLocaleString()} 元
+                        ${pingPrice.toLocaleString()} 元
                     </td>
                     <td class="p-3 text-center font-mono text-xs font-bold text-purple-800">
                         ${comp.ref_time_adjustment_rate.toFixed(4)}
                     </td>
                     <td class="p-3 text-right font-mono font-black text-indigo-900 text-base">
-                        ${Math.round(comp.ref_adjusted_unit_price_m2).toLocaleString()} 元
+                        ${adjPingPrice.toLocaleString()} 元
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -423,9 +453,10 @@
                         <div class="text-sm font-sans">
                             <div class="font-bold text-orange-800">比較標的 #${comp.rank}</div>
                             <div class="font-semibold text-slate-800">${comp.address}</div>
+                            <div>地號 (8碼): <b>${comp.land_parcel_raw || '-'}</b></div>
                             <div>交易日期: <b>${comp.transaction_date}</b></div>
-                            <div>成交單價: <b>${Math.round(comp.raw_unit_price_m2).toLocaleString()}</b> 元/m²</div>
-                            <div>期日修正後單價: <b class="text-indigo-900">${Math.round(comp.ref_adjusted_unit_price_m2).toLocaleString()}</b> 元/m²</div>
+                            <div>成交單價: <b>${pingPrice.toLocaleString()}</b> 元/坪</div>
+                            <div>期日修正後單價: <b class="text-indigo-900">${adjPingPrice.toLocaleString()}</b> 元/坪</div>
                             <div>綜合相似度: <b>${(comp.composite_similarity * 100).toFixed(1)}%</b></div>
                         </div>
                     `);
@@ -475,8 +506,8 @@
                 land_area: parseFloat(document.getElementById('land_area').value) || 25,
                 floor: parseInt(document.getElementById('floor').value) || 3,
                 total_floors: parseInt(document.getElementById('total_floors').value) || 7,
-                zoning_name: "第二種住宅區",
-                bcr_far: "60% / 220%",
+                zoning_name: targetZoningData.zoning_type,
+                bcr_far: targetZoningData.bcr_far,
                 parking_availability: parseInt(document.getElementById('parking').value)
             };
 
@@ -522,22 +553,27 @@
             const rows = latestRetrievalData.top10_comparables;
             const headers = [
                 "序號 (Rank)", "比較標的編號 (ID)", "門牌地址 (Address)", "行政區 (District)",
-                "交易日期 (Date)", "空間距離 (Distance_m)", "建物型態 (Bldg_Type)",
+                "地號 (Land_Parcel_8Digits)", "交易日期 (Date)", "空間距離 (Distance_m)", "建物型態 (Bldg_Type)",
                 "主要用途 (Use)", "屋齡 (Age_Years)", "建物面積 (Area_m2)", "土地面積 (Land_m2)",
                 "所在樓層 (Floor)", "總樓層 (Total_Floors)", "物理相似度 (Property_Sim)",
                 "環境相似度 (Neighborhood_Sim)", "綜合相似度 (Composite_Sim)", "正規化權重 (Norm_Weight)",
-                "成交單價元平方公尺 (Raw_Unit_Price_m2)", "期日修正參考率 (Time_Adj_Rate)", "修正後單價元平方公尺 (Adjusted_Unit_Price_m2)"
+                "成交單價元平方公尺 (Raw_Unit_Price_m2)", "換算單價元坪 (Raw_Unit_Price_Ping)",
+                "期日修正參考率 (Time_Adj_Rate)", "修正後單價元坪 (Adjusted_Unit_Price_Ping)"
             ];
 
             const csvContent = [];
             csvContent.push(headers.join(","));
 
             rows.forEach(r => {
+                const rawPing = Math.round(r.raw_unit_price_m2 * 3.305785);
+                const adjPing = Math.round(r.ref_adjusted_unit_price_m2 * 3.305785);
+
                 const rowVals = [
                     r.rank,
                     `"${r.comparable_id}"`,
                     `"${r.address}"`,
                     `"${r.district}"`,
+                    `"${r.land_parcel_raw || ''}"`,
                     `"${r.transaction_date}"`,
                     r.distance_m,
                     `"${r.bldg_type}"`,
@@ -552,8 +588,9 @@
                     r.composite_similarity,
                     r.normalized_weight,
                     r.raw_unit_price_m2,
+                    rawPing,
                     r.ref_time_adjustment_rate,
-                    r.ref_adjusted_unit_price_m2
+                    adjPing
                 ];
                 csvContent.push(rowVals.join(","));
             });
