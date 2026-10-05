@@ -28,7 +28,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="hidden sm:inline-block bg-emerald-950 text-emerald-300 border border-emerald-600 px-3.5 py-1.5 rounded-lg text-sm font-mono font-bold">
-                ● Master Engine: Fold 3 (220k Pool)
+                ● PostgreSQL Index Engine: Active
             </span>
             <button onclick="window.close()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition cursor-pointer">
                 ✕ 關閉視窗
@@ -239,7 +239,7 @@
                                 <th class="p-3 text-center">環境 (s_n)</th>
                                 <th class="p-3 text-center">綜合相似 (S)</th>
                                 <th class="p-3 text-right">成交單價 (元/坪)</th>
-                                <th class="p-3 text-center">期日修正率</th>
+                                <th class="p-3 text-center">期日修正率 (C)</th>
                                 <th class="p-3 text-right text-indigo-900">修正後單價 (元/坪)</th>
                             </tr>
                         </thead>
@@ -393,6 +393,7 @@
                 const isPreChecked = idx < 3 ? "checked" : "";
                 const pingPrice = Math.round(comp.raw_unit_price_m2 * 3.305785);
                 const adjPingPrice = Math.round(comp.ref_adjusted_unit_price_m2 * 3.305785);
+                const timeAdjPercent = (comp.ref_time_adjustment_rate * 100).toFixed(2) + "%";
 
                 tr.innerHTML = `
                     <td class="p-3 text-center">
@@ -425,8 +426,8 @@
                     <td class="p-3 text-right font-mono font-bold text-slate-700 text-base">
                         ${pingPrice.toLocaleString()} 元
                     </td>
-                    <td class="p-3 text-center font-mono text-xs font-bold text-purple-800">
-                        ${comp.ref_time_adjustment_rate.toFixed(4)}
+                    <td class="p-3 text-center font-mono font-bold text-purple-800 text-sm">
+                        ${timeAdjPercent}
                     </td>
                     <td class="p-3 text-right font-mono font-black text-indigo-900 text-base">
                         ${adjPingPrice.toLocaleString()} 元
@@ -452,6 +453,7 @@
                             <div>地號 (8碼): <b>${comp.land_parcel_raw || '-'}</b></div>
                             <div>交易日期: <b>${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</b></div>
                             <div>成交單價: <b>${pingPrice.toLocaleString()}</b> 元/坪</div>
+                            <div>期日修正率 (C): <b class="text-purple-800">${timeAdjPercent}</b></div>
                             <div>期日修正後單價: <b class="text-indigo-900">${adjPingPrice.toLocaleString()}</b> 元/坪</div>
                             <div>綜合相似度: <b>${(comp.composite_similarity * 100).toFixed(1)}%</b></div>
                         </div>
