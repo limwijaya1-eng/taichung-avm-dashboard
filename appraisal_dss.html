@@ -71,7 +71,7 @@
                 <h2 class="font-black text-slate-800 text-lg md:text-xl flex items-center gap-2">
                     <span>🏡</span> 勘估標的物理條件設定 (Subject Property Specifications)
                 </h2>
-                <!-- Info Kadaster Target -->
+                <!-- Badge Info Kadaster Target -->
                 <div id="targetCadastralBadge" class="hidden sm:flex items-center gap-3 text-xs font-mono font-semibold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700">
                     <span>地號: <b id="dispTargetLot" class="text-indigo-700">-</b></span>
                     <span>|</span>
@@ -180,8 +180,9 @@
                     <button onclick="exportFullExcelReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2 text-base cursor-pointer">
                         <span>📊</span> 匯出估價報告書 (Excel 4 工作表)
                     </button>
-                    <button onclick="exportComparableGridCSV()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 text-sm cursor-pointer">
-                        <span>📥</span> 匯出 10 筆母體清單 (CSV)
+                    <!-- Tombol Ekspor 3-Sheet Excel untuk Alamat Target + Top 10 -->
+                    <button onclick="exportMasterFeaturesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 text-sm cursor-pointer" title="匯出勘估標的與10筆比較標的完整母體特徵 (3個Excel工作表)">
+                        <span>📑</span> 匯出 10 筆母體清單 (3-Sheet Excel)
                     </button>
                 </div>
             </div>
@@ -572,66 +573,61 @@
             }
         }
 
-        function exportComparableGridCSV() {
+        // FUNGSI EKSPOR 3-SHEET EXCEL (ALAMAT TARGET + TOP 10 PEMBANDING)
+        async function exportMasterFeaturesExcel() {
             if (!latestRetrievalData || !latestRetrievalData.top10_comparables) {
-                return alert("尚未檢索比較標的，無法匯出！");
+                return alert("尚未檢索比較標的，無法匯出母體清單！");
             }
 
-            const rows = latestRetrievalData.top10_comparables;
-            const headers = [
-                "序號 (Rank)", "比較標的編號 (ID)", "門牌地址 (Address)", "行政區 (District)",
-                "地號 (Land_Parcel_8Digits)", "完工日 (Construction_Date)", "交易日期 (Date)",
-                "空間距離 (Distance_m)", "建物型態 (Bldg_Type)", "主要用途 (Use)", "屋齡 (Age_Years)",
-                "建物面積 (Area_m2)", "土地面積 (Land_m2)", "所在樓層 (Floor)", "總樓層 (Total_Floors)",
-                "物理相似度 (Property_Sim)", "環境相似度 (Neighborhood_Sim)", "綜合相似度 (Composite_Sim)",
-                "正規化權重 (Norm_Weight)", "成交單價元平方公尺 (Raw_Unit_Price_m2)", "換算單價元坪 (Raw_Unit_Price_Ping)",
-                "期日修正參考率 (Time_Adj_Rate)", "修正後單價元坪 (Adjusted_Unit_Price_Ping)"
-            ];
+            const payload = {
+                target_address: document.getElementById('targetAddress').value.trim(),
+                district: document.getElementById('targetDistrict').value.trim(),
+                wgs84_latitude: parseFloat(document.getElementById('targetLat').value),
+                wgs84_longitude: parseFloat(document.getElementById('targetLng').value),
+                bldg_type_cat: document.getElementById('bldg_type').value,
+                main_use_cat: document.getElementById('main_use').value,
+                material_cat: document.getElementById('material').value,
+                building_age: parseFloat(document.getElementById('age').value),
+                building_area: parseFloat(document.getElementById('bldg_area').value) || 100,
+                land_area: parseFloat(document.getElementById('land_area').value) || 25,
+                floor: parseInt(document.getElementById('floor').value) || 3,
+                total_floors: parseInt(document.getElementById('total_floors').value) || 7,
+                bedrooms: parseInt(document.getElementById('rooms').value) || 3,
+                living_rooms: parseInt(document.getElementById('halls').value) || 2,
+                bathrooms: parseInt(document.getElementById('baths').value) || 2,
+                elevator: parseInt(document.getElementById('elevator').value),
+                management_org: parseInt(document.getElementById('mgmt').value),
+                parking_availability: parseInt(document.getElementById('parking').value),
+                top10_comparables: latestRetrievalData.top10_comparables
+            };
 
-            const csvContent = [];
-            csvContent.push(headers.join(","));
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/appraisal/export-master-features-excel`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            rows.forEach(r => {
-                const rawPing = Math.round(r.raw_unit_price_m2 * 3.305785);
-                const adjPing = Math.round(r.ref_adjusted_unit_price_m2 * 3.305785);
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.detail || "匯出母體清單 Excel 失敗。");
+                }
 
-                const rowVals = [
-                    r.rank,
-                    `"${r.comparable_id}"`,
-                    `"${r.address}"`,
-                    `"${r.district}"`,
-                    `"${r.land_parcel_raw || ''}"`,
-                    `"${r.construction_date_roc || ''}"`,
-                    `"${r.transaction_date_roc_chinese || r.raw_transaction_date}"`,
-                    r.distance_m,
-                    `"${r.bldg_type}"`,
-                    `"${r.main_use}"`,
-                    r.building_age,
-                    r.building_area,
-                    r.land_area,
-                    r.floor,
-                    r.total_floors,
-                    r.property_similarity,
-                    r.neighborhood_similarity,
-                    r.composite_similarity,
-                    r.normalized_weight,
-                    r.raw_unit_price_m2,
-                    rawPing,
-                    r.ref_time_adjustment_rate,
-                    adjPing
-                ];
-                csvContent.push(rowVals.join(","));
-            });
-
-            const blob = new Blob(["\uFEFF" + csvContent.join("\n")], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `Taichung_Top10_Appraisal_Grid_${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Taichung_Target_and_Top10_3Sheets_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("匯出母體清單發生錯誤: " + err.message);
+            }
         }
     </script>
 </body>
