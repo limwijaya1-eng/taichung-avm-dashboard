@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>不動產估價比準決策支援系統 - Appraisal Decision Support System</title>
+    <title>不動產估價比準決策支援系統 - Real Estate Appraisal Decision Support System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -22,15 +22,19 @@
         <div class="flex items-center gap-3.5">
             <span class="text-3xl">🏛️</span>
             <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-wide">臺中市不動產估價比準決策支援系統 (Appraisal DSS)</h1>
-                <p class="text-sm text-slate-300 mt-0.5">雙塔度量學習推薦 10 筆標的 → 估價師精選 3 筆比較案例 → 產製標準估價比準報告書</p>
+                <h1 id="t_header_title" class="text-xl md:text-2xl font-bold tracking-wide">臺中市不動產估價比準決策支援系統 (Appraisal DSS)</h1>
+                <p id="t_header_subtitle" class="text-sm text-slate-300 mt-0.5">雙塔度量學習推薦 10 筆標的 → 估價師精選 3 筆比較案例 → 產製標準估價比準報告書</p>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <span class="hidden sm:inline-block bg-emerald-950 text-emerald-300 border border-emerald-600 px-3.5 py-1.5 rounded-lg text-sm font-mono font-bold">
+        <div class="flex items-center gap-3">
+            <!-- Language Switcher Button -->
+            <button id="langToggleBtn" onclick="toggleLanguage()" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400 px-3.5 py-1.5 rounded-lg text-sm font-bold tracking-wide transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                <span>🌐</span> <span id="langBtnText">ENG</span>
+            </button>
+            <span id="t_db_badge" class="hidden sm:inline-block bg-emerald-950 text-emerald-300 border border-emerald-600 px-3.5 py-1.5 rounded-lg text-sm font-mono font-bold">
                 ● PostgreSQL Index Engine: Active
             </span>
-            <button onclick="window.close()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition cursor-pointer">
+            <button onclick="window.close()" id="t_close_btn" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition cursor-pointer">
                 ✕ 關閉視窗
             </button>
         </div>
@@ -42,24 +46,24 @@
         <!-- Banner Alamat & Tanggal Valuasi -->
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex-1 w-full">
-                <span class="text-sm font-bold text-indigo-700 uppercase tracking-wider block">勘估標的物門牌地址 (Subject Property Doorplate)</span>
+                <span id="t_label_target_address" class="text-sm font-bold text-indigo-700 uppercase tracking-wider block">勘估標的物門牌地址 (Subject Property Doorplate)</span>
                 <input type="text" id="targetAddress" class="text-xl md:text-2xl font-black text-slate-900 w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 mt-1 focus:outline-indigo-500" placeholder="請輸入欲估價之門牌地址">
             </div>
             <div class="flex flex-wrap items-center gap-3 shrink-0 text-base">
                 <div>
-                    <span class="text-sm font-medium text-slate-500 block">價格日期 (Valuation Date)</span>
+                    <span id="t_label_valuation_date" class="text-sm font-medium text-slate-500 block">價格日期 (Valuation Date)</span>
                     <input type="date" id="valuationDate" class="font-mono font-bold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 text-base">
                 </div>
                 <div>
-                    <span class="text-sm font-medium text-slate-500 block">行政區</span>
-                    <input type="text" id="targetDistrict" value="北屯區" class="w-24 font-bold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 text-base">
+                    <span id="t_label_district" class="text-sm font-medium text-slate-500 block">行政區 (District)</span>
+                    <input type="text" id="targetDistrict" value="西屯區" class="w-24 font-bold bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 text-base">
                 </div>
                 <div>
-                    <span class="text-sm font-medium text-slate-500 block">緯度 (Lat)</span>
+                    <span id="t_label_lat" class="text-sm font-medium text-slate-500 block">緯度 (Latitude)</span>
                     <input type="number" step="0.00001" id="targetLat" class="w-28 font-mono font-bold bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-base">
                 </div>
                 <div>
-                    <span class="text-sm font-medium text-slate-500 block">經度 (Lng)</span>
+                    <span id="t_label_lng" class="text-sm font-medium text-slate-500 block">經度 (Longitude)</span>
                     <input type="number" step="0.00001" id="targetLng" class="w-28 font-mono font-bold bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-base">
                 </div>
             </div>
@@ -68,20 +72,20 @@
         <!-- Grid Input Karakteristik Fisik Objek Target -->
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-4">
-                <h2 class="font-black text-slate-800 text-lg md:text-xl flex items-center gap-2">
+                <h2 id="t_title_property_specs" class="font-black text-slate-800 text-lg md:text-xl flex items-center gap-2">
                     <span>🏡</span> 勘估標的物理條件設定 (Subject Property Specifications)
                 </h2>
                 <!-- Badge Info Kadaster Target -->
                 <div id="targetCadastralBadge" class="hidden sm:flex items-center gap-3 text-xs font-mono font-semibold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700">
-                    <span>地號: <b id="dispTargetLot" class="text-indigo-700">-</b></span>
+                    <span><span id="t_badge_lot_lbl">地號</span>: <b id="dispTargetLot" class="text-indigo-700">-</b></span>
                     <span>|</span>
-                    <span>完工: <b id="dispTargetDate" class="text-emerald-700">-</b></span>
+                    <span><span id="t_badge_completion_lbl">完工</span>: <b id="dispTargetDate" class="text-emerald-700">-</b></span>
                 </div>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 text-base">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">建物型態</label>
+                    <label id="t_label_bldg_type" class="block text-sm font-bold text-slate-700 mb-1.5">建物型態</label>
                     <select id="bldg_type" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                         <option value="Tower">大樓 (Tower)</option>
                         <option value="Apartment" selected>公寓 (Apartment)</option>
@@ -90,7 +94,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">主要用途</label>
+                    <label id="t_label_main_use" class="block text-sm font-bold text-slate-700 mb-1.5">主要用途</label>
                     <select id="main_use" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                         <option value="Residential" selected>住家用 (Residential)</option>
                         <option value="Commercial">商業用 (Commercial)</option>
@@ -99,35 +103,35 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">主要建材</label>
+                    <label id="t_label_material" class="block text-sm font-bold text-slate-700 mb-1.5">主要建材</label>
                     <select id="material" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                         <option value="鋼筋混凝土造" selected>鋼筋混凝土造 (RC)</option>
                         <option value="鋼骨造">鋼骨造 (Steel/SRC)</option>
-                        <option value="磚造/木造">磚造/木造</option>
+                        <option value="磚造/木造">磚造/木造 (Brick/Wood)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">屋齡 (年)</label>
+                    <label id="t_label_building_age" class="block text-sm font-bold text-slate-700 mb-1.5">屋齡 (年)</label>
                     <input type="number" id="age" value="12" step="0.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">建物面積 (m²)</label>
+                    <label id="t_label_building_area" class="block text-sm font-bold text-slate-700 mb-1.5">建物面積 (m²)</label>
                     <input type="number" id="bldg_area" value="115.0" step="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">土地面積 (m²)</label>
+                    <label id="t_label_land_area" class="block text-sm font-bold text-slate-700 mb-1.5">土地面積 (m²)</label>
                     <input type="number" id="land_area" value="28.0" step="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">所在樓層</label>
+                    <label id="t_label_floor" class="block text-sm font-bold text-slate-700 mb-1.5">所在樓層</label>
                     <input type="number" id="floor" value="5" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">總樓層數</label>
+                    <label id="t_label_total_floors" class="block text-sm font-bold text-slate-700 mb-1.5">總樓層數</label>
                     <input type="number" id="total_floors" value="12" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">格局 (房/廳/衛)</label>
+                    <label id="t_label_layout" class="block text-sm font-bold text-slate-700 mb-1.5">格局 (房/廳/衛)</label>
                     <div class="grid grid-cols-3 gap-1.5">
                         <input type="number" id="rooms" value="3" class="bg-slate-50 border border-slate-300 rounded-lg px-1 py-2 text-center font-bold text-base">
                         <input type="number" id="halls" value="2" class="bg-slate-50 border border-slate-300 rounded-lg px-1 py-2 text-center font-bold text-base">
@@ -135,30 +139,30 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">電梯設備</label>
+                    <label id="t_label_elevator" class="block text-sm font-bold text-slate-700 mb-1.5">電梯設備</label>
                     <select id="elevator" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
-                        <option value="1" selected>有電梯</option>
-                        <option value="0">無電梯</option>
+                        <option value="1" selected>有電梯 (Yes)</option>
+                        <option value="0">無電梯 (No)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">管委會組織</label>
+                    <label id="t_label_management" class="block text-sm font-bold text-slate-700 mb-1.5">管委會組織</label>
                     <select id="mgmt" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
-                        <option value="1" selected>有管委會</option>
-                        <option value="0">無管委會</option>
+                        <option value="1" selected>有管委會 (Yes)</option>
+                        <option value="0">無管委會 (No)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">車位狀況</label>
+                    <label id="t_label_parking" class="block text-sm font-bold text-slate-700 mb-1.5">車位狀況</label>
                     <select id="parking" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 font-semibold text-slate-800 text-base">
-                        <option value="1" selected>含車位</option>
-                        <option value="0">無車位</option>
+                        <option value="1" selected>含車位 (Yes)</option>
+                        <option value="0">無車位 (No)</option>
                     </select>
                 </div>
             </div>
             <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
                 <button id="btnRunQuery" onclick="runComparableRetrieval()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-7 py-3 rounded-xl transition shadow-md flex items-center gap-2.5 text-base md:text-lg cursor-pointer">
-                    <span>🔍</span> 檢索 10 筆最適比較標的 (Retrieve Top-10)
+                    <span>🔍</span> <span id="t_btn_retrieve">檢索 10 筆最適比較標的 (Retrieve Top-10)</span>
                 </button>
             </div>
         </div>
@@ -169,20 +173,19 @@
             <!-- Summary Bar Retrieval -->
             <div class="bg-indigo-900 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest block">檢索結果摘要 (Retrieval Summary)</span>
+                    <span id="t_summary_tag" class="text-xs font-bold text-indigo-300 uppercase tracking-widest block">檢索結果摘要 (Retrieval Summary)</span>
                     <h3 id="resTierSummary" class="text-lg md:text-xl font-bold mt-1">Tier 1 (Strict Same Type & Use, <= 3km)</h3>
                     <p class="text-sm text-indigo-200 mt-0.5">
-                        平均綜合相似度: <b id="resMeanSim" class="text-emerald-400 font-mono text-base">-</b> | 
-                        平均距離: <b id="resMeanDist" class="text-amber-300 font-mono text-base">-</b>
+                        <span id="t_mean_sim_lbl">平均綜合相似度</span>: <b id="resMeanSim" class="text-emerald-400 font-mono text-base">-</b> | 
+                        <span id="t_mean_dist_lbl">平均距離</span>: <b id="resMeanDist" class="text-amber-300 font-mono text-base">-</b>
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <button onclick="exportFullExcelReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2 text-base cursor-pointer">
-                        <span>📊</span> 匯出估價報告書 (Excel 4 工作表)
+                        <span>📊</span> <span id="t_btn_export_appraisal">匯出估價報告書 (Excel 4 工作表)</span>
                     </button>
-                    <!-- Tombol Ekspor 3-Sheet Excel untuk Alamat Target + Top 10 -->
-                    <button onclick="exportMasterFeaturesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 text-sm cursor-pointer" title="匯出勘估標的與10筆比較標的完整母體特徵 (3個Excel工作表)">
-                        <span>📑</span> 匯出 10 筆母體清單 (3-Sheet Excel)
+                    <button onclick="exportMasterFeaturesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 text-sm cursor-pointer" title="Export complete 3-sheet master features for subject and top 10 comparables">
+                        <span>📑</span> <span id="t_btn_export_master">匯出 10 筆母體清單 (3-Sheet Excel)</span>
                     </button>
                 </div>
             </div>
@@ -190,12 +193,12 @@
             <!-- Peta Spasial Distribusi 10 Pembanding -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3.5">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-black text-slate-800 text-base md:text-lg flex items-center gap-2">
+                    <h3 id="t_title_spatial_map" class="font-black text-slate-800 text-base md:text-lg flex items-center gap-2">
                         <span>🗺️</span> 勘估標的與 10 筆比較標的空間地理分佈 (Spatial Evidence)
                     </h3>
                     <div class="flex items-center gap-4 text-sm font-semibold">
-                        <span class="inline-flex items-center gap-1.5 text-blue-800"><span class="w-3.5 h-3.5 rounded-full bg-blue-600 inline-block"></span> 勘估標的 (Subject)</span>
-                        <span class="inline-flex items-center gap-1.5 text-orange-800"><span class="w-3.5 h-3.5 rounded-full bg-orange-500 inline-block"></span> 10 筆比較標的 (Top-10)</span>
+                        <span class="inline-flex items-center gap-1.5 text-blue-800"><span class="w-3.5 h-3.5 rounded-full bg-blue-600 inline-block"></span> <span id="t_legend_target">勘估標的 (Subject)</span></span>
+                        <span class="inline-flex items-center gap-1.5 text-orange-800"><span class="w-3.5 h-3.5 rounded-full bg-orange-500 inline-block"></span> <span id="t_legend_top10">10 筆比較標的 (Top-10)</span></span>
                     </div>
                 </div>
                 <div id="dssMap" class="w-full rounded-xl border border-slate-300"></div>
@@ -205,16 +208,16 @@
             <div id="ownHistoryCard" class="hidden bg-purple-50/70 border border-purple-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
                 <div class="flex items-center gap-2">
                     <span class="text-lg">📜</span>
-                    <h4 class="font-black text-purple-950 text-base">勘估標的歷史成交紀錄 (Subject Property Historical Transactions)</h4>
-                    <span class="text-xs bg-purple-200 text-purple-900 px-2.5 py-0.5 rounded font-bold">獨立佐證資訊 (不混入外部比準)</span>
+                    <h4 id="t_title_own_history" class="font-black text-purple-950 text-base">勘估標的歷史成交紀錄 (Subject Property Historical Transactions)</h4>
+                    <span id="t_badge_own_history" class="text-xs bg-purple-200 text-purple-900 px-2.5 py-0.5 rounded font-bold">獨立佐證資訊 (不混入外部比準)</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="bg-purple-100 text-purple-900 font-bold border-b border-purple-200">
-                                <th class="p-2.5">歷史交易日期</th>
-                                <th class="p-2.5 text-right">當時成交單價 (NTD/坪)</th>
-                                <th class="p-2.5 text-right">當時成交總價 (NTD)</th>
+                                <th id="th_hist_date" class="p-2.5">歷史交易日期</th>
+                                <th id="th_hist_price" class="p-2.5 text-right">當時成交單價 (NTD/坪)</th>
+                                <th id="th_hist_total" class="p-2.5 text-right">當時成交總價 (NTD)</th>
                             </tr>
                         </thead>
                         <tbody id="ownHistoryTableBody" class="divide-y divide-purple-100 font-medium font-mono"></tbody>
@@ -226,10 +229,10 @@
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3.5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2.5 border-b border-slate-100">
                     <div>
-                        <h3 class="font-black text-slate-800 text-base md:text-lg flex items-center gap-2">
+                        <h3 id="t_title_comp_grid" class="font-black text-slate-800 text-base md:text-lg flex items-center gap-2">
                             <span>🔍</span> Top-10 比較標的估價比準清單 (Comparable Evidence Grid)
                         </h3>
-                        <p class="text-sm text-slate-500 mt-0.5">請估價師勾選 3 筆最適比較標的（系統預設勾選 Top 1~3），即可匯出正式報告表格</p>
+                        <p id="t_subtitle_comp_grid" class="text-sm text-slate-500 mt-0.5">請估價師勾選 3 筆最適比較標的（系統預設勾選 Top 1~3），即可匯出正式報告表格</p>
                     </div>
                     <span id="selectedCountBadge" class="text-sm bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded font-bold">
                         已勾選: 3 / 3 筆
@@ -239,18 +242,18 @@
                     <table class="w-full text-left text-sm md:text-base">
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
-                                <th class="p-3 text-center">選取</th>
-                                <th class="p-3">序號</th>
-                                <th class="p-3">門牌地址 / 交易日期</th>
-                                <th class="p-3 text-center">地號 (8碼)</th>
-                                <th class="p-3 text-center">建物條件 / 完工日</th>
-                                <th class="p-3 text-center">距離</th>
-                                <th class="p-3 text-center">物理 (s_p)</th>
-                                <th class="p-3 text-center">環境 (s_n)</th>
-                                <th class="p-3 text-center">綜合相似 (S)</th>
-                                <th class="p-3 text-right">成交單價 (元/坪)</th>
-                                <th class="p-3 text-center">期日修正率 (C)</th>
-                                <th class="p-3 text-right text-indigo-900">修正後單價 (元/坪)</th>
+                                <th id="th_select" class="p-3 text-center">選取</th>
+                                <th id="th_rank" class="p-3">序號</th>
+                                <th id="th_addr_date" class="p-3">門牌地址 / 交易日期</th>
+                                <th id="th_lot" class="p-3 text-center">地號 (8碼)</th>
+                                <th id="th_bldg_cond" class="p-3 text-center">建物條件 / 完工日</th>
+                                <th id="th_dist" class="p-3 text-center">距離</th>
+                                <th id="th_sim_p" class="p-3 text-center">物理 (s_p)</th>
+                                <th id="th_sim_n" class="p-3 text-center">環境 (s_n)</th>
+                                <th id="th_sim_comp" class="p-3 text-center">綜合相似 (S)</th>
+                                <th id="th_raw_price" class="p-3 text-right">成交單價 (元/坪)</th>
+                                <th id="th_adj_rate" class="p-3 text-center">期日修正率 (C)</th>
+                                <th id="th_adj_price" class="p-3 text-right text-indigo-900">修正後單價 (元/坪)</th>
                             </tr>
                         </thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
@@ -268,26 +271,239 @@
         let targetMarker = null;
         let compMarkersGroup = null;
         let latestRetrievalData = null;
+        let currentLang = localStorage.getItem('appraisal_dss_lang') || 'zh';
 
         let targetZoningData = {
             zoning_type: "第一之一種住宅區",
             bcr_far: "50%/140%",
             master_plan: "",
-            district: "北屯區",
+            district: "西屯區",
             land_parcel_raw: "",
             land_section_name: "",
             construction_date_roc: ""
         };
+
+        // ==============================================================================
+        // KAMUS BAHASA BILINGUAL (ZH-HANT & ENGLISH)
+        // ==============================================================================
+        const I18N = {
+            zh: {
+                langBtnText: "ENG",
+                header_title: "臺中市不動產估價比準決策支援系統 (Appraisal DSS)",
+                header_subtitle: "雙塔度量學習推薦 10 筆標的 → 估價師精選 3 筆比較案例 → 產製標準估價比準報告書",
+                db_badge: "● PostgreSQL Index Engine: Active",
+                close_btn: "✕ 關閉視窗",
+                label_target_address: "勘估標的物門牌地址 (Subject Property Doorplate)",
+                label_valuation_date: "價格日期 (Valuation Date)",
+                label_district: "行政區 (District)",
+                label_lat: "緯度 (Latitude)",
+                label_lng: "經度 (Longitude)",
+                title_property_specs: "🏡 勘估標的物理條件設定 (Subject Property Specifications)",
+                badge_lot_lbl: "地號",
+                badge_completion_lbl: "完工",
+                label_bldg_type: "建物型態",
+                label_main_use: "主要用途",
+                label_material: "主要建材",
+                label_building_age: "屋齡 (年)",
+                label_building_area: "建物面積 (m²)",
+                label_land_area: "土地面積 (m²)",
+                label_floor: "所在樓層",
+                label_total_floors: "總樓層數",
+                label_layout: "格局 (房/廳/衛)",
+                label_elevator: "電梯設備",
+                label_management: "管委會組織",
+                label_parking: "車位狀況",
+                btn_retrieve: "檢索 10 筆最適比較標的 (Retrieve Top-10)",
+                summary_tag: "檢索結果摘要 (Retrieval Summary)",
+                mean_sim_lbl: "平均綜合相似度",
+                mean_dist_lbl: "平均距離",
+                btn_export_appraisal: "匯出估價報告書 (Excel 4 工作表)",
+                btn_export_master: "匯出 10 筆母體清單 (3-Sheet Excel)",
+                title_spatial_map: "🗺️ 勘估標的與 10 筆比較標的空間地理分佈 (Spatial Evidence)",
+                legend_target: "勘估標的 (Subject)",
+                legend_top10: "10 筆比較標的 (Top-10)",
+                title_own_history: "勘估標的歷史成交紀錄 (Subject Property Historical Transactions)",
+                badge_own_history: "獨立佐證資訊 (不混入外部比準)",
+                th_hist_date: "歷史交易日期",
+                th_hist_price: "當時成交單價 (NTD/坪)",
+                th_hist_total: "當時成交總價 (NTD)",
+                title_comp_grid: "🔍 Top-10 比較標的估價比準清單 (Comparable Evidence Grid)",
+                subtitle_comp_grid: "請估價師勾選 3 筆最適比較標的（系統預設勾選 Top 1~3），即可匯出正式報告表格",
+                th_select: "選取",
+                th_rank: "序號",
+                th_addr_date: "門牌地址 / 交易日期",
+                th_lot: "地號 (8碼)",
+                th_bldg_cond: "建物條件 / 完工日",
+                th_dist: "距離",
+                th_sim_p: "物理 (s_p)",
+                th_sim_n: "環境 (s_n)",
+                th_sim_comp: "綜合相似 (S)",
+                th_raw_price: "成交單價 (元/坪)",
+                th_adj_rate: "期日修正率 (C)",
+                th_adj_price: "修正後單價 (元/坪)",
+                selected_text: (cnt) => `已勾選: ${cnt} / 3 筆`,
+                popup_subject: "<b>勘估標的物 (Subject Property)</b>",
+                popup_comp: (r) => `比較標的 #${r}`,
+                tx_date_lbl: "交易日期",
+                age_lbl: "屋齡",
+                years_lbl: "年",
+                ping_lbl: "坪",
+                completed_lbl: "完工",
+                unit_price_lbl: "成交單價",
+                time_adj_lbl: "期日修正率 (C)",
+                adj_price_lbl: "期日修正後單價",
+                sim_lbl: "綜合相似度"
+            },
+            en: {
+                langBtnText: "繁中",
+                header_title: "Taichung Real Estate Appraisal Decision Support System (Appraisal DSS)",
+                header_subtitle: "Two-Tower Metric Learning Recommendation (Top-10) → Expert Appraisal Selection (Top-3) → Official Valuation Report",
+                db_badge: "● PostgreSQL Index Engine: Active",
+                close_btn: "✕ Close Window",
+                label_target_address: "Subject Property Doorplate Address",
+                label_valuation_date: "Valuation Benchmark Date",
+                label_district: "District Jurisdiction",
+                label_lat: "WGS84 Latitude",
+                label_lng: "WGS84 Longitude",
+                title_property_specs: "🏡 Subject Property Architectural & Cadastral Specifications",
+                badge_lot_lbl: "Parcel No.",
+                badge_completion_lbl: "Completed",
+                label_bldg_type: "Building Typology",
+                label_main_use: "Primary Usage",
+                label_material: "Structural Material",
+                label_building_age: "Age (Years)",
+                label_building_area: "Floor Area (m²)",
+                label_land_area: "Land Holding (m²)",
+                label_floor: "Subject Floor",
+                label_total_floors: "Total Floors",
+                label_layout: "Layout (Bed/Living/Bath)",
+                label_elevator: "Elevator Facility",
+                label_management: "Management Committee",
+                label_parking: "Parking Space",
+                btn_retrieve: "Retrieve Top-10 Optimal Comparables",
+                summary_tag: "Model Retrieval & Similarity Summary",
+                mean_sim_lbl: "Mean Composite Similarity",
+                mean_dist_lbl: "Mean Spatial Distance",
+                btn_export_appraisal: "Export Valuation Report (Excel 4-Sheets)",
+                btn_export_master: "Export Top-10 Candidate Pool (3-Sheet Excel)",
+                title_spatial_map: "🗺️ Geospatial Distribution of Subject & Top-10 Comparables",
+                legend_target: "Subject Property",
+                legend_top10: "Top-10 Comparables",
+                title_own_history: "Subject Property Historical Transaction Records",
+                badge_own_history: "Autonomous Ground Truth (Excluded from External Comparables)",
+                th_hist_date: "Historical Transaction Date",
+                th_hist_price: "Historical Unit Price (NTD/Ping)",
+                th_hist_total: "Transaction Total Price (NTD)",
+                title_comp_grid: "🔍 Top-10 Appraisal Comparable Evidence Grid",
+                subtitle_comp_grid: "Select exactly 3 optimal comparables (System defaults to Top 1~3) to generate the standardized comparative appraisal report",
+                th_select: "Select",
+                th_rank: "Rank",
+                th_addr_date: "Address / Transaction Date",
+                th_lot: "Cadastral No.",
+                th_bldg_cond: "Specifications / Completion",
+                th_dist: "Distance",
+                th_sim_p: "Property (s_p)",
+                th_sim_n: "Spatial (s_n)",
+                th_sim_comp: "Composite (S)",
+                th_raw_price: "Unit Price (NTD/Ping)",
+                th_adj_rate: "Time Adj. Rate (C)",
+                th_adj_price: "Adjusted Price (NTD/Ping)",
+                selected_text: (cnt) => `Selected: ${cnt} / 3 Comparables`,
+                popup_subject: "<b>Subject Property (勘估標的)</b>",
+                popup_comp: (r) => `Comparable #${r}`,
+                tx_date_lbl: "Transaction Date",
+                age_lbl: "Age",
+                years_lbl: "yrs",
+                ping_lbl: "Ping",
+                completed_lbl: "Built",
+                unit_price_lbl: "Unit Price",
+                time_adj_lbl: "Time Adj. Rate (C)",
+                adj_price_lbl: "Adjusted Price",
+                sim_lbl: "Composite Similarity"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+            localStorage.setItem('appraisal_dss_lang', currentLang);
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const t = I18N[currentLang];
+            document.getElementById('langBtnText').innerText = t.langBtnText;
+            document.getElementById('t_header_title').innerText = t.header_title;
+            document.getElementById('t_header_subtitle').innerText = t.header_subtitle;
+            document.getElementById('t_db_badge').innerText = t.db_badge;
+            document.getElementById('t_close_btn').innerText = t.close_btn;
+            document.getElementById('t_label_target_address').innerText = t.label_target_address;
+            document.getElementById('t_label_valuation_date').innerText = t.label_valuation_date;
+            document.getElementById('t_label_district').innerText = t.label_district;
+            document.getElementById('t_label_lat').innerText = t.label_lat;
+            document.getElementById('t_label_lng').innerText = t.label_lng;
+            document.getElementById('t_title_property_specs').innerHTML = `<span>🏡</span> ${t.title_property_specs}`;
+            document.getElementById('t_badge_lot_lbl').innerText = t.badge_lot_lbl;
+            document.getElementById('t_badge_completion_lbl').innerText = t.badge_completion_lbl;
+            document.getElementById('t_label_bldg_type').innerText = t.label_bldg_type;
+            document.getElementById('t_label_main_use').innerText = t.label_main_use;
+            document.getElementById('t_label_material').innerText = t.label_material;
+            document.getElementById('t_label_building_age').innerText = t.label_building_age;
+            document.getElementById('t_label_building_area').innerText = t.label_building_area;
+            document.getElementById('t_label_land_area').innerText = t.label_land_area;
+            document.getElementById('t_label_floor').innerText = t.label_floor;
+            document.getElementById('t_label_total_floors').innerText = t.label_total_floors;
+            document.getElementById('t_label_layout').innerText = t.label_layout;
+            document.getElementById('t_label_elevator').innerText = t.label_elevator;
+            document.getElementById('t_label_management').innerText = t.label_management;
+            document.getElementById('t_label_parking').innerText = t.label_parking;
+            document.getElementById('t_btn_retrieve').innerText = t.btn_retrieve;
+            document.getElementById('t_summary_tag').innerText = t.summary_tag;
+            document.getElementById('t_mean_sim_lbl').innerText = t.mean_sim_lbl;
+            document.getElementById('t_mean_dist_lbl').innerText = t.mean_dist_lbl;
+            document.getElementById('t_btn_export_appraisal').innerText = t.btn_export_appraisal;
+            document.getElementById('t_btn_export_master').innerText = t.btn_export_master;
+            document.getElementById('t_title_spatial_map').innerHTML = `<span>🗺️</span> ${t.title_spatial_map}`;
+            document.getElementById('t_legend_target').innerText = t.legend_target;
+            document.getElementById('t_legend_top10').innerText = t.legend_top10;
+            document.getElementById('t_title_own_history').innerText = t.title_own_history;
+            document.getElementById('t_badge_own_history').innerText = t.badge_own_history;
+            document.getElementById('th_hist_date').innerText = t.th_hist_date;
+            document.getElementById('th_hist_price').innerText = t.th_hist_price;
+            document.getElementById('th_hist_total').innerText = t.th_hist_total;
+            document.getElementById('t_title_comp_grid').innerHTML = `<span>🔍</span> ${t.title_comp_grid}`;
+            document.getElementById('t_subtitle_comp_grid').innerText = t.subtitle_comp_grid;
+            document.getElementById('th_select').innerText = t.th_select;
+            document.getElementById('th_rank').innerText = t.th_rank;
+            document.getElementById('th_addr_date').innerText = t.th_addr_date;
+            document.getElementById('th_lot').innerText = t.th_lot;
+            document.getElementById('th_bldg_cond').innerText = t.th_bldg_cond;
+            document.getElementById('th_dist').innerText = t.th_dist;
+            document.getElementById('th_sim_p').innerText = t.th_sim_p;
+            document.getElementById('th_sim_n').innerText = t.th_sim_n;
+            document.getElementById('th_sim_comp').innerText = t.th_sim_comp;
+            document.getElementById('th_raw_price').innerText = t.th_raw_price;
+            document.getElementById('th_adj_rate').innerText = t.th_adj_rate;
+            document.getElementById('th_adj_price').innerText = t.th_adj_price;
+
+            updateSelectedCount();
+
+            // Re-render hasil jika data komparasi sudah ada
+            if (latestRetrievalData) {
+                const lat = parseFloat(document.getElementById('targetLat').value);
+                const lng = parseFloat(document.getElementById('targetLng').value);
+                renderRetrievalResults(latestRetrievalData, lat, lng);
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', async () => {
             const todayStr = new Date().toISOString().slice(0, 10);
             document.getElementById('valuationDate').value = todayStr;
 
             const params = new URLSearchParams(window.location.search);
-            const address = params.get('address') || "仁和里崇德八路一段１７７號十樓之１";
-            const district = params.get('district') || "北屯區";
-            const lat = parseFloat(params.get('lat')) || 24.1833;
-            const lng = parseFloat(params.get('lng')) || 120.6811;
+            const address = params.get('address') || "惠來里惠民路７１號";
+            const district = params.get('district') || "西屯區";
+            const lat = parseFloat(params.get('lat')) || 24.16358;
+            const lng = parseFloat(params.get('lng')) || 120.63959;
 
             document.getElementById('targetAddress').value = address;
             document.getElementById('targetDistrict').value = district;
@@ -298,7 +514,9 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(dssMap);
             compMarkersGroup = L.layerGroup().addTo(dssMap);
 
-            targetMarker = L.marker([lat, lng]).addTo(dssMap).bindPopup(`<b>勘估標的物</b><br>${address}`).openPopup();
+            targetMarker = L.marker([lat, lng]).addTo(dssMap).bindPopup(`<b>${I18N[currentLang].legend_target}</b><br>${address}`).openPopup();
+
+            applyLanguage();
 
             try {
                 const zResp = await fetch(`${API_BASE_URL}/api/v1/spatial-query?lat=${lat}&lng=${lng}`, {
@@ -320,7 +538,7 @@
         async function runComparableRetrieval() {
             const btn = document.getElementById('btnRunQuery');
             btn.disabled = true;
-            btn.innerHTML = `<span class="animate-spin">⏳</span> 正在檢索 10 筆最適比較標的...`;
+            btn.innerHTML = `<span class="animate-spin">⏳</span> ${currentLang === 'zh' ? '正在檢索 10 筆最適比較標的...' : 'Retrieving Top-10 Optimal Comparables...'}`;
 
             const payload = {
                 target_address: document.getElementById('targetAddress').value.trim(),
@@ -373,14 +591,15 @@
 
                 renderRetrievalResults(data, payload.wgs84_latitude, payload.wgs84_longitude);
             } catch (err) {
-                alert("比準系統檢索發生錯誤: " + err.message);
+                alert("Appraisal Retrieval Error: " + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span>🔍</span> 檢索 10 筆最適比較標的 (Retrieve Top-10)`;
+                btn.innerHTML = `<span>🔍</span> <span id="t_btn_retrieve">${I18N[currentLang].btn_retrieve}</span>`;
             }
         }
 
         function renderRetrievalResults(data, targetLat, targetLng) {
+            const t = I18N[currentLang];
             document.getElementById('resultSection').classList.remove('hidden');
 
             document.getElementById('resTierSummary').innerText = data.retrieval_tier;
@@ -396,8 +615,8 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="p-2.5">${h.transaction_date}</td>
-                        <td class="p-2.5 text-right font-bold">${Math.round(h.raw_unit_price_m2 * 3.305785).toLocaleString()} 元/坪</td>
-                        <td class="p-2.5 text-right">${Math.round(h.total_price_ntd).toLocaleString()} 元</td>
+                        <td class="p-2.5 text-right font-bold">${Math.round(h.raw_unit_price_m2 * 3.305785).toLocaleString()} NTD/${t.ping_lbl}</td>
+                        <td class="p-2.5 text-right">${Math.round(h.total_price_ntd).toLocaleString()} NTD</td>
                     `;
                     ownHistTbody.appendChild(tr);
                 });
@@ -410,6 +629,10 @@
             compMarkersGroup.clearLayers();
 
             const bounds = L.latLngBounds([[targetLat, targetLng]]);
+
+            // Update Target Marker Popup
+            targetMarker.setLatLng([targetLat, targetLng]);
+            targetMarker.bindPopup(`<b>${t.legend_target}</b><br>${document.getElementById('targetAddress').value}`);
 
             data.top10_comparables.forEach((comp, idx) => {
                 const tr = document.createElement('tr');
@@ -429,15 +652,15 @@
                     <td class="p-3 font-bold text-slate-700 text-base">#${comp.rank}</td>
                     <td class="p-3">
                         <div class="font-bold text-slate-900 text-base">${comp.address}</div>
-                        <div class="text-xs text-slate-500 font-mono mt-0.5">交易日期: ${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</div>
+                        <div class="text-xs text-slate-500 font-mono mt-0.5">${t.tx_date_lbl}: ${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</div>
                     </td>
                     <td class="p-3 text-center font-mono font-bold text-slate-800 text-sm">
                         ${comp.land_parcel_raw || '-'}
                     </td>
                     <td class="p-3 text-center">
                         <span class="bg-slate-100 text-slate-800 px-2.5 py-1 rounded text-xs font-semibold">${comp.bldg_type}</span>
-                        <div class="text-xs text-slate-600 mt-1 font-mono">屋齡 ${roundedAge}年 | ${(comp.building_area * 0.3025).toFixed(1)}坪</div>
-                        <div class="text-xs text-emerald-800 font-mono font-semibold">完工: ${cDateStr}</div>
+                        <div class="text-xs text-slate-600 mt-1 font-mono">${t.age_lbl} ${roundedAge} ${t.years_lbl} | ${(comp.building_area * 0.3025).toFixed(1)} ${t.ping_lbl}</div>
+                        <div class="text-xs text-emerald-800 font-mono font-semibold">${t.completed_lbl}: ${cDateStr}</div>
                     </td>
                     <td class="p-3 text-center font-mono text-sm">
                         ${comp.distance_m < 1000 ? `${Math.round(comp.distance_m)} m` : `${(comp.distance_m / 1000).toFixed(2)} km`}
@@ -452,13 +675,13 @@
                         ${(comp.composite_similarity * 100).toFixed(1)}%
                     </td>
                     <td class="p-3 text-right font-mono font-bold text-slate-700 text-base">
-                        ${pingPrice.toLocaleString()} 元
+                        ${pingPrice.toLocaleString()} NTD
                     </td>
                     <td class="p-3 text-center font-mono font-bold text-purple-800 text-sm">
                         ${timeAdjPercent}
                     </td>
                     <td class="p-3 text-right font-mono font-black text-indigo-900 text-base">
-                        ${adjPingPrice.toLocaleString()} 元
+                        ${adjPingPrice.toLocaleString()} NTD
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -476,15 +699,15 @@
 
                     compMarker.bindPopup(`
                         <div class="text-sm font-sans">
-                            <div class="font-bold text-orange-800">比較標的 #${comp.rank}</div>
+                            <div class="font-bold text-orange-800">${t.popup_comp(comp.rank)}</div>
                             <div class="font-semibold text-slate-800">${comp.address}</div>
-                            <div>地號 (8碼): <b>${comp.land_parcel_raw || '-'}</b></div>
-                            <div>建築完成日: <b>${cDateStr}</b></div>
-                            <div>交易日期: <b>${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</b></div>
-                            <div>成交單價: <b>${pingPrice.toLocaleString()}</b> 元/坪</div>
-                            <div>期日修正率 (C): <b class="text-purple-800">${timeAdjPercent}</b></div>
-                            <div>期日修正後單價: <b class="text-indigo-900">${adjPingPrice.toLocaleString()}</b> 元/坪</div>
-                            <div>綜合相似度: <b>${(comp.composite_similarity * 100).toFixed(1)}%</b></div>
+                            <div>${t.th_lot}: <b>${comp.land_parcel_raw || '-'}</b></div>
+                            <div>${t.completed_lbl}: <b>${cDateStr}</b></div>
+                            <div>${t.tx_date_lbl}: <b>${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</b></div>
+                            <div>${t.unit_price_lbl}: <b>${pingPrice.toLocaleString()}</b> NTD/${t.ping_lbl}</div>
+                            <div>${t.time_adj_lbl}: <b class="text-purple-800">${timeAdjPercent}</b></div>
+                            <div>${t.adj_price_lbl}: <b class="text-indigo-900">${adjPingPrice.toLocaleString()}</b> NTD/${t.ping_lbl}</div>
+                            <div>${t.sim_lbl}: <b>${(comp.composite_similarity * 100).toFixed(1)}%</b></div>
                         </div>
                     `);
                 }
@@ -501,7 +724,7 @@
         function updateSelectedCount() {
             const checked = document.querySelectorAll('input[name="compCheckbox"]:checked');
             const badge = document.getElementById('selectedCountBadge');
-            badge.innerText = `已勾選: ${checked.length} / 3 筆`;
+            badge.innerText = I18N[currentLang].selected_text(checked.length);
             if (checked.length === 3) {
                 badge.className = "text-sm bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1 rounded font-bold";
             } else {
@@ -511,12 +734,15 @@
 
         async function exportFullExcelReport() {
             if (!latestRetrievalData || !latestRetrievalData.top10_comparables) {
-                return alert("尚未檢索比較標的，無法匯出！");
+                return alert(currentLang === 'zh' ? "尚未檢索比較標的，無法匯出！" : "No comparables retrieved yet!");
             }
 
             const checkedBoxes = document.querySelectorAll('input[name="compCheckbox"]:checked');
             if (checkedBoxes.length !== 3) {
-                return alert(`依據估價規範，請精確勾選 3 筆比較標的！目前已勾選 ${checkedBoxes.length} 筆。`);
+                return alert(currentLang === 'zh' ? 
+                    `依據估價規範，請精確勾選 3 筆比較標的！目前已勾選 ${checkedBoxes.length} 筆。` : 
+                    `According to appraisal norms, please select exactly 3 comparables! (Currently selected: ${checkedBoxes.length})`
+                );
             }
 
             const selectedIndices = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
@@ -569,14 +795,13 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (err) {
-                alert("匯出發生錯誤: " + err.message);
+                alert("Export Error: " + err.message);
             }
         }
 
-        // FUNGSI EKSPOR 3-SHEET EXCEL (ALAMAT TARGET + TOP 10 PEMBANDING)
         async function exportMasterFeaturesExcel() {
             if (!latestRetrievalData || !latestRetrievalData.top10_comparables) {
-                return alert("尚未檢索比較標的，無法匯出母體清單！");
+                return alert(currentLang === 'zh' ? "尚未檢索比較標的，無法匯出母體清單！" : "No comparables retrieved yet!");
             }
 
             const payload = {
@@ -626,7 +851,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (err) {
-                alert("匯出母體清單發生錯誤: " + err.message);
+                alert("Export Master Error: " + err.message);
             }
         }
     </script>
