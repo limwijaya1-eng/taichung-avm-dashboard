@@ -242,18 +242,19 @@
                     <table class="w-full text-left text-sm md:text-base">
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
-                                <th id="th_select" class="p-3 text-center">選取</th>
-                                <th id="th_rank" class="p-3">序號</th>
-                                <th id="th_addr_date" class="p-3">門牌地址 / 交易日期</th>
-                                <th id="th_lot" class="p-3 text-center">地號 (8碼)</th>
-                                <th id="th_bldg_cond" class="p-3 text-center">建物條件 / 完工日</th>
-                                <th id="th_dist" class="p-3 text-center">距離</th>
-                                <th id="th_sim_p" class="p-3 text-center">物理 (s_p)</th>
-                                <th id="th_sim_n" class="p-3 text-center">環境 (s_n)</th>
-                                <th id="th_sim_comp" class="p-3 text-center">綜合相似 (S)</th>
-                                <th id="th_raw_price" class="p-3 text-right">成交單價 (元/坪)</th>
-                                <th id="th_adj_rate" class="p-3 text-center">期日修正率 (C)</th>
-                                <th id="th_adj_price" class="p-3 text-right text-indigo-900">修正後單價 (元/坪)</th>
+                                <th id="th_select" class="p-3 text-center whitespace-nowrap">選取</th>
+                                <th id="th_rank" class="p-3 whitespace-nowrap">序號</th>
+                                <!-- Ruang ekstra untuk kolom Alamat & Tanggal -->
+                                <th id="th_addr_date" class="p-3 min-w-[240px]">門牌地址 / 交易日期</th>
+                                <!-- Ruang ekstra untuk kolom Spesifikasi & Selesai Bangun -->
+                                <th id="th_bldg_cond" class="p-3 text-center min-w-[210px]">建物條件 / 完工日</th>
+                                <th id="th_dist" class="p-3 text-center whitespace-nowrap">距離</th>
+                                <th id="th_sim_p" class="p-3 text-center whitespace-nowrap">物理 (s_p)</th>
+                                <th id="th_sim_n" class="p-3 text-center whitespace-nowrap">環境 (s_n)</th>
+                                <th id="th_sim_comp" class="p-3 text-center whitespace-nowrap">綜合相似 (S)</th>
+                                <th id="th_raw_price" class="p-3 text-right whitespace-nowrap">成交單價 (元/坪)</th>
+                                <th id="th_adj_rate" class="p-3 text-center whitespace-nowrap">期日修正率 (C)</th>
+                                <th id="th_adj_price" class="p-3 text-right text-indigo-900 whitespace-nowrap">修正後單價 (元/坪)</th>
                             </tr>
                         </thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
@@ -332,7 +333,6 @@
                 th_select: "選取",
                 th_rank: "序號",
                 th_addr_date: "門牌地址 / 交易日期",
-                th_lot: "地號 (8碼)",
                 th_bldg_cond: "建物條件 / 完工日",
                 th_dist: "距離",
                 th_sim_p: "物理 (s_p)",
@@ -399,7 +399,6 @@
                 th_select: "Select",
                 th_rank: "Rank",
                 th_addr_date: "Address / Transaction Date",
-                th_lot: "Cadastral No.",
                 th_bldg_cond: "Specifications / Completion",
                 th_dist: "Distance",
                 th_sim_p: "Property (s_p)",
@@ -475,7 +474,6 @@
             document.getElementById('th_select').innerText = t.th_select;
             document.getElementById('th_rank').innerText = t.th_rank;
             document.getElementById('th_addr_date').innerText = t.th_addr_date;
-            document.getElementById('th_lot').innerText = t.th_lot;
             document.getElementById('th_bldg_cond').innerText = t.th_bldg_cond;
             document.getElementById('th_dist').innerText = t.th_dist;
             document.getElementById('th_sim_p').innerText = t.th_sim_p;
@@ -487,7 +485,7 @@
 
             updateSelectedCount();
 
-            // Re-render hasil jika data komparasi sudah ada
+            // Re-render hasil tabel jika sudah ada data pencarian
             if (latestRetrievalData) {
                 const lat = parseFloat(document.getElementById('targetLat').value);
                 const lng = parseFloat(document.getElementById('targetLng').value);
@@ -645,42 +643,40 @@
                 const timeAdjPercent = (comp.ref_time_adjustment_rate * 100).toFixed(2) + "%";
                 const cDateStr = comp.construction_date_roc && comp.construction_date_roc !== '-' ? comp.construction_date_roc : '-';
 
+                // Kolom Cadastral No telah dihapus, space dialihkan ke Address dan Specifications
                 tr.innerHTML = `
                     <td class="p-3 text-center">
                         <input type="checkbox" name="compCheckbox" value="${idx}" ${isPreChecked} onchange="updateSelectedCount()" class="w-5 h-5 accent-indigo-600 cursor-pointer">
                     </td>
                     <td class="p-3 font-bold text-slate-700 text-base">#${comp.rank}</td>
                     <td class="p-3">
-                        <div class="font-bold text-slate-900 text-base">${comp.address}</div>
-                        <div class="text-xs text-slate-500 font-mono mt-0.5">${t.tx_date_lbl}: ${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</div>
-                    </td>
-                    <td class="p-3 text-center font-mono font-bold text-slate-800 text-sm">
-                        ${comp.land_parcel_raw || '-'}
+                        <div class="font-bold text-slate-900 text-base leading-snug">${comp.address}</div>
+                        <div class="text-xs text-slate-500 font-mono mt-1">${t.tx_date_lbl}: ${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</div>
                     </td>
                     <td class="p-3 text-center">
-                        <span class="bg-slate-100 text-slate-800 px-2.5 py-1 rounded text-xs font-semibold">${comp.bldg_type}</span>
-                        <div class="text-xs text-slate-600 mt-1 font-mono">${t.age_lbl} ${roundedAge} ${t.years_lbl} | ${(comp.building_area * 0.3025).toFixed(1)} ${t.ping_lbl}</div>
-                        <div class="text-xs text-emerald-800 font-mono font-semibold">${t.completed_lbl}: ${cDateStr}</div>
+                        <span class="inline-block bg-slate-100 text-slate-800 px-2.5 py-0.5 rounded text-xs font-semibold mb-1">${comp.bldg_type}</span>
+                        <div class="text-xs text-slate-600 font-mono whitespace-nowrap">${t.age_lbl} ${roundedAge} ${t.years_lbl} | ${(comp.building_area * 0.3025).toFixed(1)} ${t.ping_lbl}</div>
+                        <div class="text-xs text-emerald-800 font-mono font-semibold mt-0.5 whitespace-nowrap">${t.completed_lbl}: ${cDateStr}</div>
                     </td>
-                    <td class="p-3 text-center font-mono text-sm">
+                    <td class="p-3 text-center font-mono text-sm whitespace-nowrap">
                         ${comp.distance_m < 1000 ? `${Math.round(comp.distance_m)} m` : `${(comp.distance_m / 1000).toFixed(2)} km`}
                     </td>
-                    <td class="p-3 text-center font-mono text-sm text-slate-700">
+                    <td class="p-3 text-center font-mono text-sm text-slate-700 whitespace-nowrap">
                         ${(comp.property_similarity * 100).toFixed(1)}%
                     </td>
-                    <td class="p-3 text-center font-mono text-sm text-slate-700">
+                    <td class="p-3 text-center font-mono text-sm text-slate-700 whitespace-nowrap">
                         ${(comp.neighborhood_similarity * 100).toFixed(1)}%
                     </td>
-                    <td class="p-3 text-center font-mono font-bold text-indigo-700 text-base">
+                    <td class="p-3 text-center font-mono font-bold text-indigo-700 text-base whitespace-nowrap">
                         ${(comp.composite_similarity * 100).toFixed(1)}%
                     </td>
-                    <td class="p-3 text-right font-mono font-bold text-slate-700 text-base">
+                    <td class="p-3 text-right font-mono font-bold text-slate-700 text-base whitespace-nowrap">
                         ${pingPrice.toLocaleString()} NTD
                     </td>
-                    <td class="p-3 text-center font-mono font-bold text-purple-800 text-sm">
+                    <td class="p-3 text-center font-mono font-bold text-purple-800 text-sm whitespace-nowrap">
                         ${timeAdjPercent}
                     </td>
-                    <td class="p-3 text-right font-mono font-black text-indigo-900 text-base">
+                    <td class="p-3 text-right font-mono font-black text-indigo-900 text-base whitespace-nowrap">
                         ${adjPingPrice.toLocaleString()} NTD
                     </td>
                 `;
@@ -701,7 +697,6 @@
                         <div class="text-sm font-sans">
                             <div class="font-bold text-orange-800">${t.popup_comp(comp.rank)}</div>
                             <div class="font-semibold text-slate-800">${comp.address}</div>
-                            <div>${t.th_lot}: <b>${comp.land_parcel_raw || '-'}</b></div>
                             <div>${t.completed_lbl}: <b>${cDateStr}</b></div>
                             <div>${t.tx_date_lbl}: <b>${comp.transaction_date_roc_chinese || comp.raw_transaction_date}</b></div>
                             <div>${t.unit_price_lbl}: <b>${pingPrice.toLocaleString()}</b> NTD/${t.ping_lbl}</div>
