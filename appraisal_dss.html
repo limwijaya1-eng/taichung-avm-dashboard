@@ -570,7 +570,11 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error("檢索請求失敗。");
+                if (!response.ok) {
+                    let details = 'Retrieval request failed';
+                    try { const body = await response.json(); details = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail || body); } catch (_) {}
+                    throw new Error(details);
+                }
                 const data = await response.json();
                 latestRetrievalData = data;
 
@@ -678,7 +682,22 @@
                         ${adjPingPrice.toLocaleString()}
                     </td>
                 `;
+                // Additional RGCR v3.2 evidence, shown without changing the existing grid.
+                const evidenceRow = document.createElement('tr');
+                evidenceRow.className = 'bg-slate-50 border-b border-slate-200';
+                const evidenceCell = document.createElement('td');
+                evidenceCell.colSpan = tr.children.length;
+                evidenceCell.className = 'px-4 py-2 text-xs text-slate-600';
+                const evidence = [
+                    `Pareto front: ${comp.similarity_recency_pareto_front ?? '-'}`,
+                    `Regulatory: ${comp.regulatory_status ?? 'Unknown'}`,
+                    `Transaction: ${comp.transaction_condition ?? 'Unknown'}`,
+                    comp.selection_explanation || comp.regulatory_evidence || ''
+                ];
+                evidenceCell.textContent = evidence.join(' | ');
+                evidenceRow.appendChild(evidenceCell);
                 tbody.appendChild(tr);
+                tbody.appendChild(evidenceRow);
 
                 if (comp.latitude && comp.longitude) {
                     bounds.extend([comp.latitude, comp.longitude]);
@@ -731,10 +750,10 @@
             }
 
             const checkedBoxes = document.querySelectorAll('input[name="compCheckbox"]:checked');
-            if (checkedBoxes.length !== 3) {
+            if (checkedBoxes.length < 3) {
                 return alert(currentLang === 'zh' ? 
-                    `依據估價規範，請精確勾選 3 筆比較標的！目前已勾選 ${checkedBoxes.length} 筆。` : 
-                    `According to appraisal norms, please select exactly 3 comparables! (Currently selected: ${checkedBoxes.length})`
+                    `依據估價規範，請至少勾選 3 筆比較標的！目前已勾選 ${checkedBoxes.length} 筆。` : 
+                    `According to appraisal norms, please select at least 3 comparables! (Currently selected: ${checkedBoxes.length})`
                 );
             }
 
