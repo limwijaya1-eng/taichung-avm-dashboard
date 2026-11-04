@@ -267,11 +267,36 @@
         let currentActiveLng = 120.6499;
 
         // Navigasi ke Layar Baru Appraisal DSS (Top-10 Comparables)
-        function goToDssPage() {
-            const addrInput = document.getElementById('addressInput').value.trim();
-            const addr = currentActiveAddress || addrInput || "臺中市西屯區惠民路71號";
-            const dist = currentActiveDistrict || "西屯區";
-            const targetUrl = `appraisal_dss.html?address=${encodeURIComponent(addr)}&district=${encodeURIComponent(dist)}&lat=${currentActiveLat}&lng=${currentActiveLng}`;
+        async function goToDssPage() {
+            const typed = document.getElementById('addressInput').value.trim();
+            const addr = typed || currentActiveAddress;
+            if (!addr || addr.startsWith('座標查詢點')) {
+                alert('請先搜尋有效的門牌地址，再開啟 DSS。');
+                return;
+            }
+            let district = currentActiveDistrict;
+            let lat = currentActiveLat;
+            let lng = currentActiveLng;
+            let resolvedAddress = currentActiveAddress;
+            // Only this DSS navigation function is changed. Never forward stale map coordinates.
+            if (!currentActiveAddress || typed && typed !== currentActiveAddress) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/v1/geocode?query_address=${encodeURIComponent(addr)}`, {
+                        headers: { 'ngrok-skip-browser-warning': 'true' }
+                    });
+                    if (!response.ok) throw new Error('Address lookup failed');
+                    const data = await response.json();
+                    lat = Number(data.wgs84_latitude);
+                    lng = Number(data.wgs84_longitude);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Missing valid coordinates');
+                    resolvedAddress = data.full_address || addr;
+                    district = data.district || '';
+                } catch (error) {
+                    alert('Cannot open DSS: ' + error.message);
+                    return;
+                }
+            }
+            const targetUrl = `appraisal_dss.html?address=${encodeURIComponent(resolvedAddress)}&district=${encodeURIComponent(district)}&lat=${lat}&lng=${lng}`;
             window.open(targetUrl, '_blank');
         }
 
