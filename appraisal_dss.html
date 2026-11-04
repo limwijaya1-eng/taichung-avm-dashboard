@@ -87,8 +87,9 @@
                 <div>
                     <label id="t_label_bldg_type" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">建物型態</label>
                     <select id="bldg_type" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
+                        <option value="" selected>— Select / 選擇 —</option>
                         <option value="Tower">大樓 (Tower)</option>
-                        <option value="Apartment" selected>公寓 (Apartment)</option>
+                        <option value="Apartment">公寓 (Apartment)</option>
                         <option value="Townhouse">透天厝 (Townhouse)</option>
                         <option value="Mansion">華廈 (Mansion)</option>
                     </select>
@@ -96,7 +97,8 @@
                 <div>
                     <label id="t_label_main_use" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">主要用途</label>
                     <select id="main_use" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
-                        <option value="Residential" selected>住家用 (Residential)</option>
+                        <option value="" selected>— Select / 選擇 —</option>
+                        <option value="Residential">住家用 (Residential)</option>
                         <option value="Commercial">商業用 (Commercial)</option>
                         <option value="Office">辦公用 (Office)</option>
                         <option value="Industrial">工業用 (Industrial)</option>
@@ -105,14 +107,15 @@
                 <div>
                     <label id="t_label_material" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">主要建材</label>
                     <select id="material" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
-                        <option value="鋼筋混凝土造" selected>鋼筋混凝土造 (RC)</option>
+                        <option value="" selected>— Select / 選擇 —</option>
+                        <option value="鋼筋混凝土造">鋼筋混凝土造 (RC)</option>
                         <option value="鋼骨造">鋼骨造 (Steel/SRC)</option>
                         <option value="磚造/木造">磚造/木造 (Brick/Wood)</option>
                     </select>
                 </div>
                 <div>
                     <label id="t_label_building_age" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">屋齡 (年)</label>
-                    <input type="number" id="age" placeholder="—" step="0.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
+                    <input type="number" id="age" placeholder="—" step="0.01" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
                 </div>
                 <div>
                     <label id="t_label_building_area" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">建物面積 (m²)</label>
@@ -141,21 +144,24 @@
                 <div>
                     <label id="t_label_elevator" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">電梯設備</label>
                     <select id="elevator" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
-                        <option value="1" selected>有電梯 (Yes)</option>
+                        <option value="" selected>— Select / 選擇 —</option>
+                        <option value="1">有電梯 (Yes)</option>
                         <option value="0">無電梯 (No)</option>
                     </select>
                 </div>
                 <div>
                     <label id="t_label_management" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">管委會組織</label>
                     <select id="mgmt" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
-                        <option value="1" selected>有管委會 (Yes)</option>
+                        <option value="" selected>— Select / 選擇 —</option>
+                        <option value="1">有管委會 (Yes)</option>
                         <option value="0">無管委會 (No)</option>
                     </select>
                 </div>
                 <div>
                     <label id="t_label_parking" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">車位狀況</label>
                     <select id="parking" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
-                        <option value="1" selected>含車位 (Yes)</option>
+                        <option value="" selected>— Select / 選擇 —</option>
+                        <option value="1">含車位 (Yes)</option>
                         <option value="0">無車位 (No)</option>
                     </select>
                 </div>
@@ -184,26 +190,6 @@
                 <div id="dssMap" class="w-full rounded-xl border border-slate-300"></div>
             </div>
 
-            <!-- Tabel Transaksi Masa Lalu Milik Objek Sendiri (Own History) -->
-            <div id="ownHistoryCard" class="hidden bg-purple-50/70 border border-purple-200 rounded-xl p-4 shadow-sm flex flex-col gap-2.5">
-                <div class="flex items-center gap-2">
-                    <span class="text-base">📜</span>
-                    <h4 id="t_title_own_history" class="font-black text-purple-950 text-sm md:text-base">勘估標的歷史成交紀錄 (Subject Property Historical Transactions)</h4>
-                    <span id="t_badge_own_history" class="text-xs bg-purple-200 text-purple-900 px-2 py-0.5 rounded font-bold">獨立佐證資訊 (不混入外部比準)</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs md:text-sm">
-                        <thead>
-                            <tr class="bg-purple-100 text-purple-900 font-bold border-b border-purple-200">
-                                <th id="th_hist_date" class="p-2">歷史交易日期</th>
-                                <th id="th_hist_price" class="p-2 text-right">當時成交單價 (NTD/坪)</th>
-                                <th id="th_hist_total" class="p-2 text-right">當時成交總價 (NTD)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ownHistoryTableBody" class="divide-y divide-purple-100 font-medium font-mono"></tbody>
-                    </table>
-                </div>
-            </div>
 
             <!-- Tabel Kisi 10 Pembanding Lengkap (Top-10 Comparable Evidence Grid) -->
             <!-- Horizontal scroll comparable evidence table -->
@@ -223,7 +209,7 @@
                 <!-- Horizontally scrollable table -->
                 <div class="w-full overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="text-left whitespace-nowrap" style="min-width:1700px;width:100%;table-layout:auto">
-                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address / Transaction date</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th><th class="px-3 py-3 text-left">Area (m²)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Structure</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Unit price (NTD/Ping)</th></tr></thead>
+                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address / Transaction date</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th><th class="px-3 py-3 text-left">Area (m²)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Structure</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Unit price (NTD/Ping)</th><th class="px-3 py-3 text-left">Similarity</th><th class="px-3 py-3 text-left">Pareto Front</th><th class="px-3 py-3 text-left">Retrieval Explanation</th></tr></thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium text-xs"></tbody>
                     </table>
                 </div>
@@ -499,8 +485,6 @@
                     const profile=await resp.json();
                     if(profile.matched && profile.subject_metadata){
                         syncHistoricalSubject(profile.subject_metadata);
-                        if(!params.has('valuation_date') && profile.transaction_date)
-                            document.getElementById('valuationDate').value=profile.transaction_date;
                     }
                 }
             } catch(err){console.warn('Historical subject profile unavailable:',err);}
@@ -605,23 +589,6 @@
             if (document.getElementById('resMeanSim')) document.getElementById('resMeanSim').innerText = `${(data.mean_composite_similarity * 100).toFixed(1)}%`;
             if (document.getElementById('resMeanDist')) document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
 
-            const ownHistCard = document.getElementById('ownHistoryCard');
-            const ownHistTbody = document.getElementById('ownHistoryTableBody');
-            ownHistTbody.innerHTML = "";
-            if (data.target_own_history && data.target_own_history.length > 0) {
-                ownHistCard.classList.remove('hidden');
-                data.target_own_history.forEach(h => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="p-2">${h.transaction_date}</td>
-                        <td class="p-2 text-right font-bold">${Math.round(h.raw_unit_price_m2 * 3.305785).toLocaleString()} NTD/${t.ping_lbl}</td>
-                        <td class="p-2 text-right">${Math.round(h.total_price_ntd).toLocaleString()} NTD</td>
-                    `;
-                    ownHistTbody.appendChild(tr);
-                });
-            } else {
-                ownHistCard.classList.add('hidden');
-            }
 
             const tbody = document.getElementById('comparablesTableBody');
             tbody.innerHTML = "";
@@ -648,7 +615,7 @@
                 const flag = (v) => v===1 || v===true || String(v).toLowerCase()==='yes' ? 'Yes' : v===0 || v===false || String(v).toLowerCase()==='no' ? 'No' : safe(v);
                 const meaningful=(v)=>v!==null&&v!==undefined&&v!==''&&String(v).toLowerCase()!=='nan'&&String(v)!=='<NA>';
                 const fmt=(v,d=1)=>meaningful(v)&&Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
-                const binary=(v)=>!meaningful(v)?'—':v===true||v===1||String(v)==='1'?'Yes':v===false||v===0||String(v)==='0'||String(v).toLowerCase()==='false'?'No':String(v).toLowerCase()==='true'?'Yes':String(v);
+                const binary=(v)=>!meaningful(v)?'—':v===true||v===1||(String(v)==='1'||String(v)==='1.0')?'Yes':v===false||v===0||(String(v)==='0'||String(v)==='0.0')||String(v).toLowerCase()==='false'?'No':String(v).toLowerCase()==='true'?'Yes':String(v);
                 const floorValue=meaningful(comp.floor)&&Number(comp.floor)!==0?comp.floor:comp.transfer_floor;
                 const layout=[comp.rooms,comp.halls,comp.bathrooms].every(meaningful)?`${comp.rooms}/${comp.halls}/${comp.bathrooms}`:'—';
                 const cells = [
@@ -659,7 +626,10 @@
                   `${meaningful(floorValue)&&Number(floorValue)!==0?floorValue:'—'} / ${meaningful(comp.total_floors)&&Number(comp.total_floors)!==0?comp.total_floors:'—'}`,
                   layout,safe(comp.material),binary(comp.elevator),binary(comp.management_org),
                   binary(comp.parking_record_present ?? comp.parking_availability ?? comp.parking_type),fmt(comp.distance_m,0),
-                  Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*3.305785).toLocaleString():'—'
+                  Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*3.305785).toLocaleString():'—',
+                  Number.isFinite(Number(comp.composite_similarity))?Number(comp.composite_similarity).toFixed(4):'—',
+                  comp.similarity_recency_pareto_front ?? '—',
+                  esc(String(comp.selection_explanation || comp.retrieval_interpretation || comp.retrieval_explanation || comp.regulatory_explanation || '—'))
                 ];
                 tr.innerHTML = cells.map((v,i)=>`<td class="px-3 py-2 border-b border-slate-100 align-top ${i===3?'min-w-64':''}">${v}</td>`).join('');
                 tbody.appendChild(tr);
@@ -720,15 +690,15 @@
         function syncHistoricalSubject(m) {
             if (subjectWasEdited) return;
             const fields={bldg_area:m.building_area_sqm,land_area:m.land_area_sqm,total_floors:m.total_floors,
-                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction};
-            Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){document.getElementById(id).value=v;}});
+                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction,floor:m.transfer_floor ?? m.floor_num ?? m.floor};
+            Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){document.getElementById(id).value=id==='age'?Number(v).toFixed(2):v;}});
             const type=String(m.building_type_raw||'');
             const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
             if(mapped) document.getElementById('bldg_type').value=mapped;
             if(m.building_material_raw){const sel=document.getElementById('material');for(const o of sel.options){if(String(m.building_material_raw).includes(o.value)){sel.value=o.value;break;}}}
-            if(m.elevator!==null&&m.elevator!==undefined)document.getElementById('elevator').value=String(Number(m.elevator));
-            if(m.management_org!==null&&m.management_org!==undefined)document.getElementById('mgmt').value=String(Number(m.management_org));
-            if(m.parking_availability!==null&&m.parking_availability!==undefined)document.getElementById('parking').value=String(Number(m.parking_availability));
+            if(m.elevator!==null&&m.elevator!==undefined&&Number.isFinite(Number(m.elevator)))document.getElementById('elevator').value=String(Number(m.elevator));
+            if(m.management_org!==null&&m.management_org!==undefined&&Number.isFinite(Number(m.management_org)))document.getElementById('mgmt').value=String(Number(m.management_org));
+            if(m.parking_availability!==null&&m.parking_availability!==undefined&&Number.isFinite(Number(m.parking_availability)))document.getElementById('parking').value=String(Number(m.parking_availability));
             const main=String(m.main_use_raw||'');
             if(main.includes('住')) document.getElementById('main_use').value='Residential';
             else if(main.includes('商')) document.getElementById('main_use').value='Commercial';
