@@ -476,8 +476,8 @@
 
             applyLanguage();
 
-            // Look up a uniquely located historical subject before displaying its specifications.
-            // The backend returns null when the match is ambiguous; never fabricate a profile.
+            // Prefill subject specifications using the latest matching historical transaction.
+            // Never replace the appraiser-selected valuation date.
             try {
                 const url = `${API_BASE_URL}/api/v1/appraisal/subject-profile?address=${encodeURIComponent(address)}&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
                 const resp = await fetch(url, {headers:{'ngrok-skip-browser-warning':'true'}});
@@ -485,6 +485,10 @@
                     const profile=await resp.json();
                     if(profile.matched && profile.subject_metadata){
                         syncHistoricalSubject(profile.subject_metadata);
+                    } else {
+                        console.warn('Subject profile not matched:', profile.reason || 'unknown');
+                        document.getElementById('t_title_property_specs').title =
+                            'No exact historical doorplate match: ' + (profile.reason || 'unknown');
                     }
                 }
             } catch(err){console.warn('Historical subject profile unavailable:',err);}
@@ -689,8 +693,16 @@
         });
         function syncHistoricalSubject(m) {
             if (subjectWasEdited) return;
+            const numericFloor = (v) => {
+                if (v === null || v === undefined || v === '') return null;
+                const n=Number(v);
+                return Number.isFinite(n) ? n : null;
+            };
+            const floor = numericFloor(m.transfer_floor) ?? numericFloor(m.floor_num) ??
+                (Number.isFinite(Number(m.relative_floor)) && Number.isFinite(Number(m.total_floors))
+                    ? Math.round(Number(m.relative_floor)*Number(m.total_floors)) : null);
             const fields={bldg_area:m.building_area_sqm,land_area:m.land_area_sqm,total_floors:m.total_floors,
-                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction,floor:m.transfer_floor ?? m.floor_num ?? m.floor};
+                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction,floor};
             Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){document.getElementById(id).value=id==='age'?Number(v).toFixed(2):v;}});
             const type=String(m.building_type_raw||'');
             const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
@@ -698,7 +710,8 @@
             if(m.building_material_raw){const sel=document.getElementById('material');for(const o of sel.options){if(String(m.building_material_raw).includes(o.value)){sel.value=o.value;break;}}}
             if(m.elevator!==null&&m.elevator!==undefined&&Number.isFinite(Number(m.elevator)))document.getElementById('elevator').value=String(Number(m.elevator));
             if(m.management_org!==null&&m.management_org!==undefined&&Number.isFinite(Number(m.management_org)))document.getElementById('mgmt').value=String(Number(m.management_org));
-            if(m.parking_availability!==null&&m.parking_availability!==undefined&&Number.isFinite(Number(m.parking_availability)))document.getElementById('parking').value=String(Number(m.parking_availability));
+            const parkingValue=m.parking_record_present ?? m.parking_availability;
+            if(parkingValue!==null&&parkingValue!==undefined&&Number.isFinite(Number(parkingValue)))document.getElementById('parking').value=String(Number(parkingValue));
             const main=String(m.main_use_raw||'');
             if(main.includes('住')) document.getElementById('main_use').value='Residential';
             else if(main.includes('商')) document.getElementById('main_use').value='Commercial';
