@@ -776,7 +776,7 @@
         ];
         function adjustmentState(c,i){
           const id=String(c.comparable_id);
-          const a=manualAdjustmentState[id] ||= {weight:i===0?34:33,notes:'',exception:false,exception_reason:'',items:{}};
+          const a=manualAdjustmentState[id] ||= {weight:i===1?34:33,notes:'',exception:false,exception_reason:'',items:{}};
           if(!a.items)a.items={};
           for(const g of ADJUSTMENT_GROUPS)for(const [k] of g.items)if(a.items[k]===undefined)a.items[k]=0;
           return a;
@@ -801,7 +801,11 @@
           panel.classList.remove('hidden');const comps=selectedForAppraisal();
           const root=document.getElementById('adjustmentGroups');root.innerHTML='';
           if(comps.length!==3){document.getElementById('appraisalSummary').textContent=`Select exactly 3 comparables (currently ${comps.length}).`;return;}
-          comps.forEach((c,i)=>adjustmentState(c,i));
+          const currentSelection=comps.map(c=>String(c.comparable_id)).join('|');
+          if(window.__lastAppraisalSelection!==currentSelection){
+            comps.forEach((c,i)=>{adjustmentState(c,i).weight=i===1?34:33;});
+            window.__lastAppraisalSelection=currentSelection;
+          }
           for(const g of ADJUSTMENT_GROUPS){
             const box=document.createElement('section');box.className='border border-slate-200 rounded-xl overflow-hidden';
             box.innerHTML=`<div class="bg-slate-100 px-4 py-3 font-bold text-slate-800">${g.label}<span class="float-right text-xs font-normal text-slate-500">Manual adjustment · 100% = unchanged</span></div>`;
