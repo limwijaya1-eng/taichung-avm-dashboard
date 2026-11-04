@@ -426,11 +426,11 @@
             document.getElementById('t_title_spatial_map').innerHTML = `<span>🗺️</span> ${t.title_spatial_map}`;
             document.getElementById('t_legend_target').innerText = t.legend_target;
             document.getElementById('t_legend_top10').innerText = t.legend_top10;
-            document.getElementById('t_title_own_history').innerText = t.title_own_history;
-            document.getElementById('t_badge_own_history').innerText = t.badge_own_history;
-            document.getElementById('th_hist_date').innerText = t.th_hist_date;
-            document.getElementById('th_hist_price').innerText = t.th_hist_price;
-            document.getElementById('th_hist_total').innerText = t.th_hist_total;
+            if (document.getElementById('t_title_own_history')) document.getElementById('t_title_own_history').innerText = t.title_own_history;
+            if (document.getElementById('t_badge_own_history')) document.getElementById('t_badge_own_history').innerText = t.badge_own_history;
+            if (document.getElementById('th_hist_date')) document.getElementById('th_hist_date').innerText = t.th_hist_date;
+            if (document.getElementById('th_hist_price')) document.getElementById('th_hist_price').innerText = t.th_hist_price;
+            if (document.getElementById('th_hist_total')) document.getElementById('th_hist_total').innerText = t.th_hist_total;
             document.getElementById('t_title_comp_grid').innerHTML = `<span>🔍</span> ${t.title_comp_grid}`;
             document.getElementById('t_subtitle_comp_grid').innerText = t.subtitle_comp_grid;
             if (document.getElementById('th_select')) document.getElementById('th_select').innerText = t.th_select;
