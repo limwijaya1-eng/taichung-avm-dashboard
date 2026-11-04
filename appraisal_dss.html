@@ -222,19 +222,19 @@
 
                 <!-- Horizontally scrollable table -->
                 <div class="w-full overflow-x-auto border border-slate-200 rounded-lg">
-                    <table class="text-left whitespace-nowrap" style="min-width:1900px;width:100%;table-layout:auto">
-                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address / Transaction date</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th><th class="px-3 py-3 text-left">Area (m²)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Property sim.</th><th class="px-3 py-3 text-left">Neighborhood sim.</th><th class="px-3 py-3 text-left">Composite sim.</th><th class="px-3 py-3 text-left">Unit price (NTD/Ping)</th><th class="px-3 py-3 text-left">Regulatory evidence</th></tr></thead>
+                    <table class="text-left whitespace-nowrap" style="min-width:1700px;width:100%;table-layout:auto">
+                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address / Transaction date</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th><th class="px-3 py-3 text-left">Area (m²)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Structure</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Unit price (NTD/Ping)</th></tr></thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium text-xs"></tbody>
                     </table>
                 </div>
             </div>
 
             <section id="adjustmentWorkspace" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hidden">
-              <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><h3 class="text-lg font-bold text-slate-900">Appraiser Adjustment Workspace / 估價師調整作業</h3><p class="text-sm text-slate-500">Three selected comparables · Manual adjustment factors · Statutory screening</p></div><button onclick="exportMasterFeaturesExcel()" class="text-xs border rounded-lg px-3 py-2 text-indigo-700">Export Top-10 Candidate Pool (3-Sheet Excel)</button></div>
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><div><h3 class="text-lg font-bold text-slate-900">Appraiser Adjustment Workspace / 估價師調整作業</h3><p class="text-sm text-slate-500">Three selected comparables · Manual adjustment factors · Statutory screening</p></div></div>
               <div id="adjustmentGroups" class="space-y-4"></div>
-              <div id="adjustmentNotes" class="mt-4 grid gap-3"></div>
+
               <div id="appraisalSummary" class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm">Select three comparables.</div>
-              <div class="mt-4 grid md:grid-cols-2 gap-3"><label class="text-sm font-semibold">Appraiser name<input id="appraiserName" class="w-full border rounded-lg p-2 mt-1" placeholder="Name (optional)"></label><label class="text-sm font-semibold">Article 26 review / rationale<textarea id="article26Review" rows="2" class="w-full border rounded-lg p-2 mt-1" placeholder="Appraiser review and conclusion"></textarea></label></div>
+
               <button onclick="exportReviewedAppraisal()" class="mt-4 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-lg font-bold">Export Valuation Report (Excel 4 Sheets)</button>
             </section>
         </div>
@@ -626,17 +626,20 @@
                 const safe = (v) => (v === null || v === undefined || String(v) === 'NaN') ? '-' : String(v);
                 const nfmt = (v,d=1) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '-';
                 const flag = (v) => v===1 || v===true || String(v).toLowerCase()==='yes' ? 'Yes' : v===0 || v===false || String(v).toLowerCase()==='no' ? 'No' : safe(v);
+                const meaningful=(v)=>v!==null&&v!==undefined&&v!==''&&String(v).toLowerCase()!=='nan'&&String(v)!=='<NA>';
+                const fmt=(v,d=1)=>meaningful(v)&&Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
+                const binary=(v)=>!meaningful(v)?'—':v===true||v===1||String(v)==='1'?'Yes':v===false||v===0||String(v)==='0'?'No':String(v);
+                const floorValue=meaningful(comp.floor)&&Number(comp.floor)!==0?comp.floor:comp.transfer_floor;
+                const layout=[comp.rooms,comp.halls,comp.bathrooms].every(meaningful)?`${comp.rooms}/${comp.halls}/${comp.bathrooms}`:'—';
                 const cells = [
                   `<input type="checkbox" name="compCheckbox" value="${idx}" ${isPreChecked} onchange="updateSelectedCount()" class="w-4 h-4 accent-indigo-600">`,
-                  `#${safe(comp.rank)}`,safe(comp.rgcr_row_id ?? comp.comparable_id),
+                  `#${comp.rank}`,String(comp.rgcr_row_id ?? comp.comparable_id ?? '—'),
                   `<span class="font-semibold">${safe(comp.address)}</span><div class="text-slate-500 text-[11px]">${safe(comp.transaction_date_roc_chinese || comp.raw_transaction_date)}</div>`,
-                  safe(comp.district),safe(comp.bldg_type),nfmt(comp.building_area,2),nfmt(comp.building_age,1),
-                  `${safe(comp.floor ?? comp.relative_floor)} / ${safe(comp.total_floors)}`,
-                  `${safe(comp.rooms ?? comp.bedrooms)}/${safe(comp.halls ?? comp.living_rooms)}/${safe(comp.bathrooms)}`,
-                  flag(comp.elevator),flag(comp.management_org),flag(comp.parking_availability),nfmt(comp.distance_m,0),
-                  nfmt(Number(comp.property_similarity)*100,1)+'%',nfmt(Number(comp.neighborhood_similarity)*100,1)+'%',nfmt(Number(comp.composite_similarity)*100,1)+'%',
-                  Math.round(Number(comp.raw_unit_price_m2)*3.305785).toLocaleString(),
-                  `<details class="max-w-64 whitespace-normal"><summary class="cursor-pointer text-indigo-700">View evidence</summary><div class="p-2 text-xs">${safe(comp.selection_explanation || comp.regulatory_evidence || comp.regulatory_status)}</div></details>`
+                  safe(comp.district),safe(comp.bldg_type),fmt(comp.building_area,2),fmt(comp.building_age,1),
+                  `${meaningful(floorValue)&&Number(floorValue)!==0?floorValue:'—'} / ${meaningful(comp.total_floors)&&Number(comp.total_floors)!==0?comp.total_floors:'—'}`,
+                  layout,safe(comp.material),binary(comp.elevator),binary(comp.management_org),
+                  binary(comp.parking_record_present ?? comp.parking_availability ?? comp.parking_type),fmt(comp.distance_m,0),
+                  Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*3.305785).toLocaleString():'—'
                 ];
                 tr.innerHTML = cells.map((v,i)=>`<td class="px-3 py-2 border-b border-slate-100 align-top ${i===3?'min-w-64':''}">${v}</td>`).join('');
                 tbody.appendChild(tr);
@@ -727,45 +730,66 @@
         }
         function adjustmentFactor(a,g){return g.items.reduce((f,[k])=>f*(1+Number(a.items[k]||0)/100),1);}
         function adjustmentNet(a,g){return (adjustmentFactor(a,g)-1)*100;}
+        const esc=(v)=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const percent=(v)=>Number.isFinite(v)?v.toFixed(2)+'%':'—';
+        const money=(v)=>Number.isFinite(v)?Math.round(v*3.305785).toLocaleString():'—';
+        function propertyEvidence(k,c){
+          const num=(v)=>v===null||v===undefined||v===''?NaN:Number(v);
+          const target=(id)=>num(document.getElementById(id)?.value);
+          if(k==='area') {const a=target('bldg_area'),b=num(c.building_area);return Number.isFinite(a)&&a>0&&Number.isFinite(b)?`${b.toFixed(2)} m² · ${((b-a)/a*100)>=0?'+':''}${((b-a)/a*100).toFixed(1)}% vs subject`:'Data unavailable';}
+          if(k==='age'){const a=target('age'),b=num(c.building_age);return Number.isFinite(a)&&Number.isFinite(b)?`${b.toFixed(1)} yr · ${b-a>=0?'+':''}${(b-a).toFixed(1)} yr vs subject`:'Data unavailable';}
+          if(k==='structure')return `Comparable: ${esc(c.material)} · Subject: ${esc(document.getElementById('material').selectedOptions[0]?.textContent)}`;
+          if(k==='elevator'||k==='management') {const v=c[k==='elevator'?'elevator':'management_org'];const t=document.getElementById(k==='elevator'?'elevator':'mgmt').value;return `Comparable: ${v===null||v===undefined?'—':String(v)} · Subject: ${t==='1'?'Yes':'No'}`;}
+          if(k==='layout')return `Comparable: ${[c.rooms,c.halls,c.bathrooms].map(x=>x??'—').join('/')} · Subject: ${['rooms','halls','baths'].map(id=>document.getElementById(id).value).join('/')}`;
+          return '';
+        }
         function refreshAdjustmentWorkspace(){
           const panel=document.getElementById('adjustmentWorkspace');if(!panel||!latestRetrievalData)return;
           panel.classList.remove('hidden');const comps=selectedForAppraisal();
-          const root=document.getElementById('adjustmentGroups'),notes=document.getElementById('adjustmentNotes');root.innerHTML='';notes.innerHTML='';
+          const root=document.getElementById('adjustmentGroups');root.innerHTML='';
           if(comps.length!==3){document.getElementById('appraisalSummary').textContent=`Select exactly 3 comparables (currently ${comps.length}).`;return;}
           comps.forEach((c,i)=>adjustmentState(c,i));
           for(const g of ADJUSTMENT_GROUPS){
             const box=document.createElement('section');box.className='border border-slate-200 rounded-xl overflow-hidden';
-            box.innerHTML=`<div class="bg-slate-100 px-4 py-3 font-bold text-slate-800">${g.label} <span class="float-right text-xs font-normal text-slate-500">Appraiser-entered factors (100% = unchanged)</span></div>`;
-            const sc=document.createElement('div');sc.className='overflow-x-auto';const tbl=document.createElement('table');tbl.className='w-full text-sm';tbl.style.minWidth='780px';
-            tbl.innerHTML='<thead><tr class="bg-slate-50"><th class="p-3 text-left w-56">Adjustment item</th><th class="p-3">Subject</th>'+comps.map(c=>`<th class="p-3 text-center">#${c.rank} ${String(c.address||'').slice(0,22)}</th>`).join('')+'</tr></thead>';
+            box.innerHTML=`<div class="bg-slate-100 px-4 py-3 font-bold text-slate-800">${g.label}<span class="float-right text-xs font-normal text-slate-500">Manual adjustment · 100% = unchanged</span></div>`;
+            const sc=document.createElement('div');sc.className='overflow-x-auto';const tbl=document.createElement('table');tbl.className='w-full text-sm';tbl.style.minWidth='860px';
+            tbl.innerHTML='<thead><tr class="bg-slate-50"><th class="p-3 text-left w-52">Adjustment item</th><th class="p-3">Subject</th>'+comps.map(c=>`<th class="p-3 text-center">#${c.rank} ${esc(String(c.address||'').slice(0,20))}</th>`).join('')+'</tr></thead>';
             const tb=document.createElement('tbody');
             for(const [k,label] of g.items){const tr=document.createElement('tr');tr.className='border-t border-slate-100';tr.innerHTML=`<td class="p-3 font-medium">${label}</td><td class="p-3 text-center bg-slate-50 text-slate-500">100% base</td>`;
-              comps.forEach((c,i)=>{const a=adjustmentState(c,i),td=document.createElement('td');td.className='p-2 text-center';const input=document.createElement('input');input.type='number';input.step='0.1';input.className='border rounded-lg w-24 px-2 py-1 text-right';input.value=(100+Number(a.items[k])).toFixed(1);input.title='100 = no adjustment; 105 = +5%; 95 = -5%';input.addEventListener('input',()=>{a.items[k]=Number(input.value)-100;calculateAppraisal();});td.append(input,document.createTextNode(' %'));tr.appendChild(td);});tb.appendChild(tr);}
-            const foot=document.createElement('tr');foot.className='bg-slate-50 border-t font-semibold';foot.innerHTML=`<td class="p-3">${g.label} subtotal</td><td class="p-3 text-center">100%</td>`+comps.map((c,i)=>`<td class="p-3 text-center" id="sub-${g.key}-${i}">100.0%</td>`).join('');tb.appendChild(foot);tbl.appendChild(tb);sc.appendChild(tbl);box.appendChild(sc);root.appendChild(box);
+              comps.forEach((c,i)=>{const a=adjustmentState(c,i),td=document.createElement('td');td.className='p-2 text-center';const input=document.createElement('input');input.type='number';input.step='1';input.min='1';input.max='999';input.className='border rounded-lg w-20 px-2 py-1 text-right';input.value=String(Math.round(100+Number(a.items[k])));input.title='100 = unchanged; 105 = +5%; 95 = -5%';input.addEventListener('input',()=>{if(input.value==='')return;const v=Number(input.value);if(!Number.isInteger(v)||v<=0)return; a.items[k]=v-100;calculateAppraisal();});input.addEventListener('change',()=>{let v=Math.round(Number(input.value));if(!Number.isFinite(v)||v<=0)v=100;input.value=String(v);a.items[k]=v-100;calculateAppraisal();});td.append(input,document.createTextNode(' %'));if(g.key==='property'){const detail=document.createElement('div');detail.className='text-[11px] text-slate-500 mt-1 whitespace-normal max-w-52 mx-auto';detail.innerHTML=propertyEvidence(k,c);td.appendChild(detail);}tr.appendChild(td);});tb.appendChild(tr);}
+            const foot=document.createElement('tr');foot.className='bg-slate-50 border-t font-semibold';foot.innerHTML=`<td class="p-3">${g.label} subtotal</td><td class="p-3 text-center">100%</td>`+comps.map((c,i)=>`<td class="p-3 text-center" id="sub-${g.key}-${i}">100%</td>`).join('');tb.appendChild(foot);tbl.appendChild(tb);sc.appendChild(tbl);box.appendChild(sc);
+            const status=document.createElement('div');status.className='px-4 py-2 text-xs border-t';status.id='check-'+g.key;box.appendChild(status);root.appendChild(box);
           }
-          const weights=document.createElement('section');weights.className='border rounded-xl p-4';weights.innerHTML='<h4 class="font-bold mb-3">Comparable weights and adjusted unit prices</h4>';
-          comps.forEach((c,i)=>{const a=adjustmentState(c,i),r=document.createElement('div');r.className='grid grid-cols-1 md:grid-cols-3 gap-2 items-center py-2 border-b text-sm';r.innerHTML=`<div>#${c.rank} ${String(c.address||'')}</div><label>Weight <input type="number" step="1" min="0" max="100" class="border rounded p-1 w-20" value="${a.weight}"> %</label><div id="adjprice-${i}" class="font-bold"></div>`;r.querySelector('input').addEventListener('input',e=>{a.weight=Number(e.target.value);calculateAppraisal();});weights.appendChild(r);});root.appendChild(weights);
-          comps.forEach((c,i)=>{const a=adjustmentState(c,i),wrap=document.createElement('div');wrap.className='border rounded-xl p-3 bg-slate-50';wrap.innerHTML=`<h4 class="font-semibold text-sm">#${c.rank} — Appraiser rationale / Article 25 exception</h4><textarea rows="2" class="w-full border rounded p-2 mt-2 text-sm" placeholder="Explain adjustments"></textarea><label class="flex gap-2 items-center mt-2 text-sm"><input type="checkbox"> Special-case exception (written justification required)</label><textarea rows="2" class="w-full border rounded p-2 mt-2 text-sm" placeholder="Exceptional market/property circumstances"></textarea>`;const [note,reason]=wrap.querySelectorAll('textarea');note.value=a.notes;note.oninput=()=>a.notes=note.value;reason.value=a.exception_reason;reason.oninput=()=>{a.exception_reason=reason.value;calculateAppraisal();};const ck=wrap.querySelector('input');ck.checked=a.exception;ck.onchange=()=>{a.exception=ck.checked;calculateAppraisal();};notes.appendChild(wrap);});calculateAppraisal();
+          const summary=document.createElement('section');summary.className='border rounded-xl p-4 overflow-x-auto';summary.innerHTML='<h4 class="font-bold mb-3">Indicated values & Article 26 spread check</h4><table class="w-full text-sm" style="min-width:750px"><thead><tr class="bg-slate-100"><th class="p-2 text-left">Item</th>'+comps.map(c=>`<th class="p-2 text-right">#${c.rank}</th>`).join('')+'</tr></thead><tbody id="valuationDetailBody"></tbody></table><div id="spreadDetail" class="mt-3 text-sm"></div>';root.appendChild(summary);
+          const weights=document.createElement('section');weights.className='border rounded-xl p-4 overflow-x-auto';weights.innerHTML='<h4 class="font-bold mb-3">Decide the comparative value</h4><table class="w-full text-sm" style="min-width:750px"><thead><tr class="bg-slate-100"><th class="p-2 text-left">Item</th>'+comps.map(c=>`<th class="p-2 text-right">#${c.rank}</th>`).join('')+'<th class="p-2 text-right">Total</th></tr></thead><tbody id="weightDetailBody"></tbody></table><div id="weightStatus" class="mt-3 text-sm"></div>';root.appendChild(weights);
+          calculateAppraisal();
         }
         function calculateAppraisal(){
           const comps=selectedForAppraisal();if(comps.length!==3)return;
-          let total=0,weight=0,blocked=false;const values=[],messages=[];
-          comps.forEach((c,i)=>{const a=adjustmentState(c,i);let f=1;for(const g of ADJUSTMENT_GROUPS){const gf=adjustmentFactor(a,g);f*=gf;const el=document.getElementById(`sub-${g.key}-${i}`);if(el)el.textContent=(gf*100).toFixed(2)+'%';}
+          let total=0,weight=0,blocked=false;const values=[],messages=[],checks=[];
+          comps.forEach((c,i)=>{const a=adjustmentState(c,i);let f=1;const gf={};for(const g of ADJUSTMENT_GROUPS){gf[g.key]=adjustmentFactor(a,g);f*=gf[g.key];const el=document.getElementById(`sub-${g.key}-${i}`);if(el)el.textContent=percent(gf[g.key]*100);}
             const val=Number(c.raw_unit_price_m2)*f;values.push(val);total+=val*a.weight/100;weight+=Number(a.weight);
             const loc=ADJUSTMENT_GROUPS[2],prop=ADJUSTMENT_GROUPS[3];const over15=[loc,prop].some(g=>Math.abs(adjustmentNet(a,g))>15||g.items.some(([k])=>Math.abs(Number(a.items[k]))>15));
             const absTotal=ADJUSTMENT_GROUPS.reduce((n,g)=>n+g.items.reduce((z,[k])=>z+Math.abs(Number(a.items[k])),0),0);
-            const invalid=ADJUSTMENT_GROUPS.some(g=>g.items.some(([k])=>Number(a.items[k])<=-100));
-            if((over15||absTotal>30)&&(!a.exception||!a.exception_reason.trim()))blocked=true;if(invalid)blocked=true;
-            const price=document.getElementById('adjprice-'+i);if(price)price.textContent=`${Math.round(val*3.305785).toLocaleString()} NTD/Ping · ${over15?'15% review · ':''}${absTotal>30?'30% review · ':''}${invalid?'Invalid':'Screened'}`;
-          });const high=Math.max(...values),low=Math.min(...values);const spread=(high+low)>0?(high-low)/((high+low)/2)*100:0;
-          if(Math.abs(weight-100)>0.01)messages.push('Weights must total 100%.');if(spread>=20)messages.push('Article 26: adjusted-price spread ≥20%; replace unsuitable comparable.');if(blocked)messages.push('Article 25: adjustment threshold / invalid factor.');
-          const summary=document.getElementById('appraisalSummary');summary.textContent=`Indicated unit value: ${Math.round(total*3.305785).toLocaleString()} NTD/Ping | Total weight: ${weight.toFixed(1)}% | Spread: ${spread.toFixed(2)}% | ${messages.join(' ')||'Screening passed.'}`;summary.dataset.spread=spread;summary.dataset.blocked=blocked;summary.dataset.weightsValid=Math.abs(weight-100)<=0.01;
+            const invalid=ADJUSTMENT_GROUPS.some(g=>g.items.some(([k])=>!Number.isFinite(Number(a.items[k]))||Number(a.items[k])<=-100));
+            if(over15||absTotal>30||invalid)blocked=true;
+            checks.push({over15,over30:absTotal>30,absTotal,invalid,gf});
+          });
+          for(const g of ADJUSTMENT_GROUPS){const el=document.getElementById('check-'+g.key);if(!el)continue;const relevant=g.key==='location'||g.key==='property';const flags=checks.map((ch,i)=>relevant&&Math.abs((ch.gf[g.key]-1)*100)>15?`#${comps[i].rank} exceeds 15%`:'').filter(Boolean);el.textContent=flags.length?'Article 25 · '+flags.join(' · '):relevant?'Article 25 · Group adjustment within 15%':'Manual adjustment';el.className='px-4 py-2 text-xs border-t '+(flags.length?'bg-rose-50 text-rose-700':'bg-emerald-50 text-emerald-800');}
+          const high=Math.max(...values),low=Math.min(...values);const spread=(high+low)>0?(high-low)/((high+low)/2)*100:0;
+          if(weight!==100)messages.push('Weights must total 100%.');if(spread>=20)messages.push('Article 26: indicated-price spread ≥20%.');if(blocked)messages.push('Article 25: adjustment threshold exceeded.');
+          const row=(label,vals)=>`<tr class="border-b"><td class="p-2">${label}</td>`+vals.map(v=>`<td class="p-2 text-right font-mono">${v}</td>`).join('')+'</tr>';
+          const detail=document.getElementById('valuationDetailBody');if(detail){let html=row('Original unit price (NTD/Ping)',comps.map(c=>money(Number(c.raw_unit_price_m2))));for(const g of ADJUSTMENT_GROUPS)html+=row(g.label+' factor',checks.map(ch=>percent(ch.gf[g.key]*100)));html+=row('Indicated unit price (NTD/Ping)',values.map(money));detail.innerHTML=html;}
+          const spreadEl=document.getElementById('spreadDetail');if(spreadEl){spreadEl.textContent=`Highest ${money(high)} · Lowest ${money(low)} NTD/Ping · Spread ${spread.toFixed(2)}% · ${spread>=20?'Article 26 review required':'Article 26 passed'} · Article 25 total absolute adjustments: ${checks.map((ch,i)=>`#${comps[i].rank} ${ch.absTotal.toFixed(1)}%${ch.over30?' (exceeds 30%)':''}`).join(' | ')}`;spreadEl.className='mt-3 text-sm p-3 rounded '+(spread>=20||blocked?'bg-rose-50 text-rose-800':'bg-emerald-50 text-emerald-800');}
+          const wb=document.getElementById('weightDetailBody');if(wb){wb.innerHTML=row('Total absolute adjustment',checks.map(ch=>percent(ch.absTotal)).concat(['—']))+row('Indicated unit price (NTD/Ping)',values.map(money).concat(['—']))+'<tr class="border-b"><td class="p-2">Appraiser weight (%)</td>'+comps.map((c,i)=>`<td class="p-2 text-right"><input type="number" min="0" max="100" step="1" data-weight="${i}" class="border rounded w-20 p-1 text-right" value="${adjustmentState(c,i).weight}"> %</td>`).join('')+`<td class="p-2 text-right font-semibold">${weight}%</td></tr>`+row('Weighted contribution (NTD/Ping)',values.map((v,i)=>money(v*adjustmentState(comps[i],i).weight/100)).concat([money(total)]));wb.querySelectorAll('[data-weight]').forEach(input=>{input.onchange=()=>{const i=Number(input.dataset.weight),v=Number(input.value);if(input.value!==''&&Number.isInteger(v)&&v>=0&&v<=100)adjustmentState(comps[i],i).weight=v;calculateAppraisal();};});}
+          const ws=document.getElementById('weightStatus');if(ws){ws.textContent=`Total weights: ${weight}% ${weight===100?'— valid':'— must equal 100%'} · Comparative unit value: ${money(total)} NTD/Ping`;ws.className='mt-3 p-3 rounded text-sm '+(weight===100?'bg-emerald-50 text-emerald-800':'bg-rose-50 text-rose-800');}
+          const summary=document.getElementById('appraisalSummary');summary.textContent=`Comparative unit value: ${money(total)} NTD/Ping | Total weight: ${weight}% | Spread: ${spread.toFixed(2)}% | ${messages.join(' ')||'Regulatory screening passed.'}`;summary.dataset.spread=spread;summary.dataset.blocked=blocked;summary.dataset.weightsValid=weight===100;
         }
         async function exportReviewedAppraisal(){
           const comps=selectedForAppraisal();if(comps.length!==3)return alert('Select exactly 3 comparables.');calculateAppraisal();const summary=document.getElementById('appraisalSummary');
           if(summary.dataset.blocked==='true')return alert('Article 25: resolve adjustment screening or document exception.');if(summary.dataset.weightsValid!=='true')return alert('Comparable weights must total 100%.');if(Number(summary.dataset.spread)>=20)return alert('Article 26: price spread ≥20%. Review and replace unsuitable comparable.');
           const rows=comps.map((c,i)=>{const a=adjustmentState(c,i);return {comparable_id:String(c.comparable_id),weight:a.weight,notes:a.notes,exception:a.exception,exception_reason:a.exception_reason,items:a.items,sale:adjustmentNet(a,ADJUSTMENT_GROUPS[0]),time:adjustmentNet(a,ADJUSTMENT_GROUPS[1]),location:adjustmentNet(a,ADJUSTMENT_GROUPS[2]),property:adjustmentNet(a,ADJUSTMENT_GROUPS[3])};});
-          const payload={subject:{address:document.getElementById('targetAddress').value,bldg_type:document.getElementById('bldg_type').value,main_use:document.getElementById('main_use').value,material:document.getElementById('material').value,building_area:Number(document.getElementById('bldg_area').value),land_area:Number(document.getElementById('land_area').value),floor:Number(document.getElementById('floor').value),total_floors:Number(document.getElementById('total_floors').value),building_age:Number(document.getElementById('age').value),zoning_name:targetZoningData.zoning_type},selected_comparables:comps,valuation_date:document.getElementById('valuationDate').value,district:document.getElementById('targetDistrict').value,appraisal_adjustments:{comparables:rows,article26_review:document.getElementById('article26Review').value,appraiser:document.getElementById('appraiserName').value}};
+          const payload={subject:{address:document.getElementById('targetAddress').value,bldg_type:document.getElementById('bldg_type').value,main_use:document.getElementById('main_use').value,material:document.getElementById('material').value,building_area:Number(document.getElementById('bldg_area').value),land_area:Number(document.getElementById('land_area').value),floor:Number(document.getElementById('floor').value),total_floors:Number(document.getElementById('total_floors').value),building_age:Number(document.getElementById('age').value),zoning_name:targetZoningData.zoning_type},selected_comparables:comps,valuation_date:document.getElementById('valuationDate').value,district:document.getElementById('targetDistrict').value,appraisal_adjustments:{comparables:rows,article26_review:'',appraiser:''}};
           try{const resp=await fetch(`${API_BASE_URL}/api/v1/appraisal/export-reviewed-excel`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify(payload)});if(!resp.ok){const e=await resp.json().catch(()=>({detail:'Export failed'}));throw new Error(e.detail||'Export failed');}const blob=await resp.blob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='Taichung_Appraisal_Report_4Sheets.xlsx';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){alert('Excel export error: '+e.message);}
         }
 
