@@ -431,11 +431,11 @@
             document.getElementById('t_label_management').innerText = t.label_management;
             document.getElementById('t_label_parking').innerText = t.label_parking;
             document.getElementById('t_btn_retrieve').innerText = t.btn_retrieve;
-            document.getElementById('t_summary_tag').innerText = t.summary_tag;
-            document.getElementById('t_mean_sim_lbl').innerText = t.mean_sim_lbl;
-            document.getElementById('t_mean_dist_lbl').innerText = t.mean_dist_lbl;
-            document.getElementById('t_btn_export_appraisal').innerText = t.btn_export_appraisal;
-            document.getElementById('t_btn_export_master').innerText = t.btn_export_master;
+            if (document.getElementById('t_summary_tag')) document.getElementById('t_summary_tag').innerText = t.summary_tag;
+            if (document.getElementById('t_mean_sim_lbl')) document.getElementById('t_mean_sim_lbl').innerText = t.mean_sim_lbl;
+            if (document.getElementById('t_mean_dist_lbl')) document.getElementById('t_mean_dist_lbl').innerText = t.mean_dist_lbl;
+            if (document.getElementById('t_btn_export_appraisal')) document.getElementById('t_btn_export_appraisal').innerText = t.btn_export_appraisal;
+            if (document.getElementById('t_btn_export_master')) document.getElementById('t_btn_export_master').innerText = t.btn_export_master;
             document.getElementById('t_title_spatial_map').innerHTML = `<span>🗺️</span> ${t.title_spatial_map}`;
             document.getElementById('t_legend_target').innerText = t.legend_target;
             document.getElementById('t_legend_top10').innerText = t.legend_top10;
@@ -446,17 +446,17 @@
             document.getElementById('th_hist_total').innerText = t.th_hist_total;
             document.getElementById('t_title_comp_grid').innerHTML = `<span>🔍</span> ${t.title_comp_grid}`;
             document.getElementById('t_subtitle_comp_grid').innerText = t.subtitle_comp_grid;
-            document.getElementById('th_select').innerText = t.th_select;
-            document.getElementById('th_rank').innerText = t.th_rank;
-            document.getElementById('th_addr_date').innerText = t.th_addr_date;
-            document.getElementById('th_bldg_cond').innerText = t.th_bldg_cond;
-            document.getElementById('th_dist').innerText = t.th_dist;
-            document.getElementById('th_sim_p').innerText = t.th_sim_p;
-            document.getElementById('th_sim_n').innerText = t.th_sim_n;
-            document.getElementById('th_sim_comp').innerText = t.th_sim_comp;
-            document.getElementById('th_raw_price').innerText = t.th_raw_price;
-            document.getElementById('th_adj_rate').innerText = t.th_adj_rate;
-            document.getElementById('th_adj_price').innerText = t.th_adj_price;
+            if (document.getElementById('th_select')) document.getElementById('th_select').innerText = t.th_select;
+            if (document.getElementById('th_rank')) document.getElementById('th_rank').innerText = t.th_rank;
+            if (document.getElementById('th_addr_date')) document.getElementById('th_addr_date').innerText = t.th_addr_date;
+            if (document.getElementById('th_bldg_cond')) document.getElementById('th_bldg_cond').innerText = t.th_bldg_cond;
+            if (document.getElementById('th_dist')) document.getElementById('th_dist').innerText = t.th_dist;
+            if (document.getElementById('th_sim_p')) document.getElementById('th_sim_p').innerText = t.th_sim_p;
+            if (document.getElementById('th_sim_n')) document.getElementById('th_sim_n').innerText = t.th_sim_n;
+            if (document.getElementById('th_sim_comp')) document.getElementById('th_sim_comp').innerText = t.th_sim_comp;
+            if (document.getElementById('th_raw_price')) document.getElementById('th_raw_price').innerText = t.th_raw_price;
+            if (document.getElementById('th_adj_rate')) document.getElementById('th_adj_rate').innerText = t.th_adj_rate;
+            if (document.getElementById('th_adj_price')) document.getElementById('th_adj_price').innerText = t.th_adj_price;
 
             updateSelectedCount();
 
@@ -581,9 +581,9 @@
             const t = I18N[currentLang];
             document.getElementById('resultSection').classList.remove('hidden');
 
-            document.getElementById('resTierSummary').innerText = data.retrieval_tier;
-            document.getElementById('resMeanSim').innerText = `${(data.mean_composite_similarity * 100).toFixed(1)}%`;
-            document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
+            if (document.getElementById('resTierSummary')) document.getElementById('resTierSummary').innerText = data.retrieval_tier;
+            if (document.getElementById('resMeanSim')) document.getElementById('resMeanSim').innerText = `${(data.mean_composite_similarity * 100).toFixed(1)}%`;
+            if (document.getElementById('resMeanDist')) document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
 
             const ownHistCard = document.getElementById('ownHistoryCard');
             const ownHistTbody = document.getElementById('ownHistoryTableBody');
