@@ -170,6 +170,23 @@
         <!-- Panel Hasil Retrieval & Bukti Komparasi -->
         <div id="resultSection" class="hidden flex flex-col gap-5">
 
+            <!-- Manual appraisal workspace; independent from RGCR ranking -->
+            <section id="adjustmentWorkspace" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hidden">
+                <h3 class="text-lg font-bold text-slate-900">Appraiser Adjustment Workspace / 估價師調整作業</h3>
+                <p class="text-sm text-slate-600 mt-1">Select exactly three comparables. All adjustments are entered by the appraiser; RGCR does not determine adjustment percentages.</p>
+                <div class="overflow-x-auto mt-4"><table class="w-full text-xs md:text-sm border-collapse" id="adjustmentTable">
+                    <thead class="bg-slate-900 text-white"><tr><th class="p-2 text-left">Selected comparable</th><th class="p-2">Sale %</th><th class="p-2">Time %</th><th class="p-2">Location %</th><th class="p-2">Property %</th><th class="p-2">Weight %</th><th class="p-2">Adjusted NTD/m²</th><th class="p-2">Article 25</th></tr></thead>
+                    <tbody id="adjustmentRows"></tbody></table></div>
+                <p class="mt-3 text-xs text-slate-500">Enter signed percentage changes, e.g. -5 or +3. A 0% entry means no adjustment. Percentages are applied multiplicatively; absolute adjustments are screened against Article 25.</p>
+                <div id="adjustmentNotes" class="mt-3 grid gap-3"></div>
+                <div class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm" id="appraisalSummary">Choose three comparables to begin.</div>
+                <div class="mt-3 grid md:grid-cols-2 gap-3">
+                    <label class="text-sm font-semibold">Appraiser name<input id="appraiserName" class="w-full border rounded-lg p-2 mt-1" placeholder="Name (optional)"></label>
+                    <label class="text-sm font-semibold">Article 26 review (required when price spread ≥20%)<textarea id="article26Review" rows="2" class="w-full border rounded-lg p-2 mt-1" placeholder="Document price-difference review and decision"></textarea></label>
+                </div>
+                <button onclick="exportReviewedAppraisal()" class="mt-4 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-lg font-bold">Export Valuation Report (Excel 4 Sheets)</button>
+            </section>
+
             <!-- Summary Bar Retrieval -->
             <div class="bg-indigo-900 text-white p-4 md:p-5 rounded-2xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5">
                 <div>
@@ -181,7 +198,7 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <button onclick="exportFullExcelReport()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5 text-xs md:text-sm cursor-pointer">
+                    <button onclick="document.getElementById('adjustmentWorkspace').scrollIntoView({behavior:'smooth'})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5 text-xs md:text-sm cursor-pointer">
                         <span>📊</span> <span id="t_btn_export_appraisal">匯出估價報告書 (Excel 4 工作表)</span>
                     </button>
                     <button onclick="exportMasterFeaturesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5 text-xs md:text-sm cursor-pointer">
@@ -557,7 +574,8 @@
                 bathrooms: parseInt(document.getElementById('baths').value) || 2,
                 elevator: parseInt(document.getElementById('elevator').value),
                 management_org: parseInt(document.getElementById('mgmt').value),
-                parking_availability: parseInt(document.getElementById('parking').value)
+                parking_availability: parseInt(document.getElementById('parking').value),
+                subject_edited: subjectWasEdited
             };
 
             try {
@@ -577,6 +595,8 @@
                 }
                 const data = await response.json();
                 latestRetrievalData = data;
+                if (data.subject_source === "historical_step05_step06" && data.subject_metadata) syncHistoricalSubject(data.subject_metadata);
+                refreshAdjustmentWorkspace();
 
                 if (data.target_cadastral) {
                     targetZoningData.land_parcel_raw = data.target_cadastral.land_parcel_raw || "";
@@ -737,11 +757,99 @@
             const checked = document.querySelectorAll('input[name="compCheckbox"]:checked');
             const badge = document.getElementById('selectedCountBadge');
             badge.innerText = I18N[currentLang].selected_text(checked.length);
+            refreshAdjustmentWorkspace();
             if (checked.length === 3) {
                 badge.className = "text-xs bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded font-bold";
             } else {
                 badge.className = "text-xs bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-1 rounded font-bold";
             }
+        }
+
+        const manualAdjustmentState = {};
+        let historicalSubjectSignature = null;
+        let subjectWasEdited = false;
+        const subjectFields = ['bldg_type','main_use','material','age','bldg_area','land_area','floor','total_floors','rooms','halls','baths','elevator','mgmt','parking'];
+        document.addEventListener('DOMContentLoaded', () => {
+            subjectFields.forEach(id => document.getElementById(id)?.addEventListener('input', () => { if (historicalSubjectSignature) subjectWasEdited = true; }));
+        });
+        function syncHistoricalSubject(m) {
+            if (subjectWasEdited) return;
+            const fields={bldg_area:m.building_area_sqm,land_area:m.land_area_sqm,total_floors:m.total_floors,
+                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction};
+            Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){document.getElementById(id).value=v;}});
+            const type=String(m.building_type_raw||'');
+            const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
+            if(mapped) document.getElementById('bldg_type').value=mapped;
+            const main=String(m.main_use_raw||'');
+            if(main.includes('住')) document.getElementById('main_use').value='Residential';
+            else if(main.includes('商')) document.getElementById('main_use').value='Commercial';
+            historicalSubjectSignature=String(m.rgcr_row_id||'historical');
+            document.getElementById('t_title_property_specs').title='Historical subject metadata synchronized with RGCR';
+        }
+        function selectedForAppraisal() {
+            if(!latestRetrievalData?.top10_comparables) return [];
+            return [...document.querySelectorAll('input[name="compCheckbox"]:checked')].map(e=>latestRetrievalData.top10_comparables[Number(e.value)]).filter(Boolean);
+        }
+        function refreshAdjustmentWorkspace(){
+            const panel=document.getElementById('adjustmentWorkspace');
+            if(!panel || !latestRetrievalData) return;
+            panel.classList.remove('hidden');
+            const comps=selectedForAppraisal();
+            const tbody=document.getElementById('adjustmentRows');const notes=document.getElementById('adjustmentNotes');
+            tbody.innerHTML='';notes.innerHTML='';
+            if(comps.length!==3){document.getElementById('appraisalSummary').textContent=`Select exactly 3 comparables (currently ${comps.length}).`;return;}
+            comps.forEach((c,i)=>{
+                const id=String(c.comparable_id);const a=manualAdjustmentState[id] ||= {sale:0,time:0,location:0,property:0,weight: i===0?34:33,notes:'',exception:false,exception_reason:''};
+                const tr=document.createElement('tr');tr.className='border-b border-slate-200';
+                const label=document.createElement('td');label.className='p-2 min-w-48';label.textContent=`#${c.rank} ${c.address}`;tr.appendChild(label);
+                ['sale','time','location','property','weight'].forEach(k=>{
+                    const td=document.createElement('td');td.className='p-1';const input=document.createElement('input');input.type='number';input.step='0.1';input.className='w-20 border rounded p-1 text-right';input.value=a[k];
+                    input.addEventListener('input',()=>{a[k]=Number(input.value);calculateAppraisal();});td.appendChild(input);tr.appendChild(td);
+                });
+                const price=document.createElement('td');price.className='p-2 text-right font-bold';price.id='adjprice-'+i;tr.appendChild(price);
+                const status=document.createElement('td');status.className='p-2';status.id='adjstatus-'+i;tr.appendChild(status);tbody.appendChild(tr);
+                const wrap=document.createElement('div');wrap.className='border rounded-lg p-3 bg-slate-50';
+                const head=document.createElement('div');head.className='text-sm font-bold';head.textContent=`#${c.rank} — Appraiser notes / Exception`;wrap.appendChild(head);
+                const note=document.createElement('textarea');note.className='w-full border rounded p-2 mt-2 text-sm';note.rows=2;note.placeholder='Explain the adjustment rationale';note.value=a.notes;note.oninput=()=>{a.notes=note.value;};wrap.appendChild(note);
+                const checkLabel=document.createElement('label');checkLabel.className='flex items-center gap-2 text-sm mt-2';const check=document.createElement('input');check.type='checkbox';check.checked=a.exception;check.onchange=()=>{a.exception=check.checked;calculateAppraisal();};checkLabel.append(check,document.createTextNode('Article 25 special-case exception (written justification required)'));wrap.appendChild(checkLabel);
+                const reason=document.createElement('textarea');reason.className='w-full border rounded p-2 mt-2 text-sm';reason.rows=2;reason.placeholder='Explain exceptional property/market circumstances';reason.value=a.exception_reason;reason.oninput=()=>{a.exception_reason=reason.value;calculateAppraisal();};wrap.appendChild(reason);notes.appendChild(wrap);
+            });calculateAppraisal();
+        }
+        function calculateAppraisal(){
+            const comps=selectedForAppraisal();if(comps.length!==3)return;
+            let total=0,weight=0,blocked=false;const values=[];let messages=[];
+            comps.forEach((c,i)=>{
+                const a=manualAdjustmentState[String(c.comparable_id)];const f=['sale','time','location','property'].reduce((v,k)=>v*(1+Number(a[k])/100),1);
+                const raw=Number(c.raw_unit_price_m2);const val=raw*f;values.push(val);total+=val*Number(a.weight)/100;weight+=Number(a.weight);
+                const absTotal=['sale','time','location','property'].reduce((v,k)=>v+Math.abs(Number(a[k])),0);
+                const over15=Math.abs(Number(a.location))>15||Math.abs(Number(a.property))>15;
+                const over30=absTotal>30;
+                const invalid=['sale','time','location','property'].some(k=>Number(a[k])<=-100);
+                const fail=(over15||over30)&&(!a.exception||!a.exception_reason.trim());blocked ||= fail||invalid;
+                document.getElementById('adjprice-'+i).textContent=Number.isFinite(val)?Math.round(val).toLocaleString():'Invalid';
+                document.getElementById('adjstatus-'+i).textContent=invalid?'Invalid factor':fail?`Review (${over15?'15% ':''}${over30?'30%':''})`:(over15||over30)?'Exception documented':'Pass';
+            });
+            const high=Math.max(...values),low=Math.min(...values);const spread=(high+low)>0?(high-low)/((high+low)/2)*100:0;
+            if(Math.abs(weight-100)>0.01)messages.push('Weights must total 100%.');
+            if(spread>=20)messages.push(`Article 26: adjusted price spread ${spread.toFixed(2)}% ≥ 20%; document review.`);
+            if(blocked)messages.push('Article 25: threshold exceeded without documented exception.');
+            const summary=document.getElementById('appraisalSummary');
+            summary.textContent=`Indicated unit value: ${Math.round(total).toLocaleString()} NTD/m² | Total weight: ${weight.toFixed(1)}% | Spread: ${spread.toFixed(2)}% | ${messages.join(' ')||'Screening passed.'}`;
+            summary.dataset.spread=String(spread);summary.dataset.blocked=String(blocked);
+        }
+        async function exportReviewedAppraisal(){
+            const comps=selectedForAppraisal();if(comps.length!==3)return alert('Select exactly three comparables.');
+            calculateAppraisal();const summary=document.getElementById('appraisalSummary');
+            if(summary.dataset.blocked==='true')return alert('Article 25: resolve flagged adjustments or document a valid exception.');
+            const spread=Number(summary.dataset.spread);
+            if(spread>=20)return alert('Article 26: adjusted trial-price spread is 20% or more. Review and replace unsuitable comparables before export.');
+            const rows=comps.map(c=>({comparable_id:String(c.comparable_id),...manualAdjustmentState[String(c.comparable_id)]}));
+            const payload={subject:{address:document.getElementById('targetAddress').value,bldg_type:document.getElementById('bldg_type').value,main_use:document.getElementById('main_use').value,material:document.getElementById('material').value,building_area:Number(document.getElementById('bldg_area').value),land_area:Number(document.getElementById('land_area').value),floor:Number(document.getElementById('floor').value),total_floors:Number(document.getElementById('total_floors').value),building_age:Number(document.getElementById('age').value),zoning_name:targetZoningData.zoning_type},selected_comparables:comps,valuation_date:document.getElementById('valuationDate').value,district:document.getElementById('targetDistrict').value,appraisal_adjustments:{comparables:rows,article26_review:document.getElementById('article26Review').value,appraiser:document.getElementById('appraiserName').value}};
+            try{
+                const resp=await fetch(`${API_BASE_URL}/api/v1/appraisal/export-reviewed-excel`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify(payload)});
+                if(!resp.ok){const e=await resp.json().catch(()=>({detail:'Export failed'}));throw new Error(e.detail||'Export failed');}
+                const blob=await resp.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Taichung_Appraisal_Reviewed_4Sheets.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+            }catch(e){alert('Excel export error: '+e.message);}
         }
 
         async function exportFullExcelReport() {
