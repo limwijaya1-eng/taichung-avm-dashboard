@@ -457,7 +457,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const todayStr = new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Taipei"});
             document.getElementById('valuationDate').value = new URLSearchParams(window.location.search).get('valuation_date') || todayStr;
-            document.getElementById('valuationDate').addEventListener('change',()=>{for(const key of Object.keys(moiTimeCache))delete moiTimeCache[key];if(latestRetrievalData)loadMoiTimeForSelected();});
+            document.getElementById('valuationDate').addEventListener('change',()=>{for(const key of Object.keys(moiTimeCache))delete moiTimeCache[key];if(latestRetrievalData)loadMoiTimeForSelected();if(!subjectWasEdited)refreshSubjectBuildingAge();});
 
             const params = new URLSearchParams(window.location.search);
             const address = params.get('address') || "惠來里惠民路７１號";
@@ -702,6 +702,17 @@
         const manualAdjustmentState = {};
         let historicalSubjectSignature = null;
         let subjectWasEdited = false;
+        let subjectConstructionDate = null;
+        function refreshSubjectBuildingAge() {
+            const ageInput = document.getElementById('age');
+            const dateText = document.getElementById('valuationDate')?.value;
+            if (!ageInput || !subjectConstructionDate || !dateText) return;
+            const completion = new Date(subjectConstructionDate + 'T00:00:00Z');
+            const valuation = new Date(dateText + 'T00:00:00Z');
+            if (!Number.isFinite(completion.getTime()) || !Number.isFinite(valuation.getTime())) return;
+            const years = (valuation.getTime() - completion.getTime()) / 86400000 / 365.2425;
+            ageInput.value = years >= 0 ? years.toFixed(2) : '';
+        }
         const subjectFields = ['bldg_type','main_use','material','age','bldg_area','land_area','floor','total_floors','rooms','halls','baths','elevator','mgmt','parking'];
         document.addEventListener('DOMContentLoaded', () => {
             subjectFields.forEach(id => document.getElementById(id)?.addEventListener('input', () => { if (historicalSubjectSignature) subjectWasEdited = true; }));
@@ -716,8 +727,9 @@
             const floor = numericFloor(m.transfer_floor) ?? numericFloor(m.floor_num) ??
                 (Number.isFinite(Number(m.relative_floor)) && Number.isFinite(Number(m.total_floors))
                     ? Math.round(Number(m.relative_floor)*Number(m.total_floors)) : null);
+            subjectConstructionDate = m.construction_date_ad || null;
             const fields={bldg_area:m.building_area_sqm,land_area:m.land_area_sqm,total_floors:m.total_floors,
-                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,age:m.building_age_at_transaction,floor};
+                rooms:m.rooms,halls:m.halls,baths:m.bathrooms,floor};
             Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){const el=document.getElementById(id);if(el)el.value=id==='age'?Number(v).toFixed(2):String(v);}});
             const type=String(m.building_type_raw||'');
             const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
@@ -730,6 +742,7 @@
             const main=String(m.main_use_raw||'');
             if(main.includes('住')) document.getElementById('main_use').value='Residential';
             else if(main.includes('商')) document.getElementById('main_use').value='Commercial';
+            refreshSubjectBuildingAge();
             historicalSubjectSignature=String(m.rgcr_row_id||'historical');
             document.getElementById('t_title_property_specs').title='Historical subject metadata synchronized with RGCR';
         }
