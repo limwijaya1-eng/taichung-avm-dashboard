@@ -118,12 +118,14 @@
                     <input type="number" id="age" placeholder="—" step="0.01" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
                 </div>
                 <div>
-                    <label id="t_label_building_area" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">建物面積 (m²)</label>
+                    <label id="t_label_building_area" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">建物面積 (m² / Ping)</label>
                     <input type="number" id="bldg_area" placeholder="—" step="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
+                <div id="bldg_area_ping" class="text-xs text-slate-500 mt-1">— Ping</div>
                 </div>
                 <div>
-                    <label id="t_label_land_area" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">土地面積 (m²)</label>
+                    <label id="t_label_land_area" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">土地面積 (m² / Ping)</label>
                     <input type="number" id="land_area" placeholder="—" step="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 text-sm">
+                <div id="land_area_ping" class="text-xs text-slate-500 mt-1">— Ping</div>
                 </div>
                 <div>
                     <label id="t_label_floor" class="block text-xs md:text-sm font-bold text-slate-700 mb-1">所在樓層</label>
@@ -210,7 +212,7 @@
                 <!-- Horizontally scrollable table -->
                 <div class="w-full overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="text-left whitespace-nowrap" style="min-width:1700px;width:100%;table-layout:auto">
-                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address</th><th class="px-3 py-3 text-left">Similarity</th><th class="px-3 py-3 text-left">Transaction Date</th><th class="px-3 py-3 text-left">Area (m²)</th><th class="px-3 py-3 text-left">Area Diff (%)</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Unit price (NTD/Ping)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Structure</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Pareto Front</th><th class="px-3 py-3 text-left">Retrieval Explanation</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th></tr></thead>
+                        <thead><tr class="bg-slate-100 text-slate-800 font-bold text-xs"><th class="px-3 py-3 text-left">Select</th><th class="px-3 py-3 text-left">Rank</th><th class="px-3 py-3 text-left">RGCR ID</th><th class="px-3 py-3 text-left">Address</th><th class="px-3 py-3 text-left">Similarity</th><th class="px-3 py-3 text-left">Transaction Date</th><th class="px-3 py-3 text-left">Building Area (m² / Ping)</th><th class="px-3 py-3 text-left">Area Diff (%)</th><th class="px-3 py-3 text-left">Distance (m)</th><th class="px-3 py-3 text-left">Unit Price (NTD/Ping)</th><th class="px-3 py-3 text-left">Total Transaction Price (NTD)</th><th class="px-3 py-3 text-left">Age (yr)</th><th class="px-3 py-3 text-left">Floor / Total</th><th class="px-3 py-3 text-left">Layout</th><th class="px-3 py-3 text-left">Structure</th><th class="px-3 py-3 text-left">Elevator</th><th class="px-3 py-3 text-left">Management</th><th class="px-3 py-3 text-left">Parking</th><th class="px-3 py-3 text-left">Pareto Front</th><th class="px-3 py-3 text-left">Retrieval Explanation</th><th class="px-3 py-3 text-left">District</th><th class="px-3 py-3 text-left">Building type</th></tr></thead>
                         <tbody id="comparablesTableBody" class="divide-y divide-slate-100 font-medium text-xs"></tbody>
                     </table>
                 </div>
@@ -268,8 +270,8 @@
                 label_main_use: "主要用途",
                 label_material: "主要建材",
                 label_building_age: "屋齡 (年)",
-                label_building_area: "建物面積 (m²)",
-                label_land_area: "土地面積 (m²)",
+                label_building_area: "建物面積 (m² / Ping)",
+                label_land_area: "土地面積 (m² / Ping)",
                 label_floor: "所在樓層",
                 label_total_floors: "總樓層數",
                 label_layout: "格局 (房/廳/衛)",
@@ -334,8 +336,8 @@
                 label_main_use: "Primary Usage",
                 label_material: "Structural Material",
                 label_building_age: "Age (Years)",
-                label_building_area: "Floor Area (m²)",
-                label_land_area: "Land Area (m²)",
+                label_building_area: "Floor Area (m² / Ping)",
+                label_land_area: "Land Area (m² / Ping)",
                 label_floor: "Subject Floor",
                 label_total_floors: "Total Floors",
                 label_layout: "Layout (Bed/Living/Bath)",
@@ -599,6 +601,19 @@
             }
         }
 
+        const SQM_PER_PING = 3.305785;
+        function refreshSubjectPing(){
+          for(const id of ['bldg_area','land_area']){
+            const el=document.getElementById(id),out=document.getElementById(id+'_ping');
+            if(!out)continue;
+            const n=el&&el.value!==''?Number(el.value):NaN;
+            out.textContent=Number.isFinite(n)&&n>=0?`${(n/SQM_PER_PING).toFixed(2)} Ping`:'— Ping';
+          }
+        }
+        document.addEventListener('DOMContentLoaded',()=>{
+          for(const id of ['bldg_area','land_area'])document.getElementById(id)?.addEventListener('input',refreshSubjectPing);
+          refreshSubjectPing();
+        });
         function renderRetrievalResults(data, targetLat, targetLng) {
             const t = I18N[currentLang];
             document.getElementById('resultSection').classList.remove('hidden');
@@ -608,6 +623,7 @@
             if (document.getElementById('resMeanDist')) document.getElementById('resMeanDist').innerText = `${data.mean_geographic_distance_m} m`;
 
 
+            refreshSubjectPing();
             const tbody = document.getElementById('comparablesTableBody');
             tbody.innerHTML = "";
             compMarkersGroup.clearLayers();
@@ -648,8 +664,9 @@
                   `<span class="font-semibold">${esc(safe(comp.address))}</span>`,
                   Number.isFinite(Number(comp.composite_similarity))?Number(comp.composite_similarity).toFixed(4):'—',
                   safe(comp.raw_transaction_date || comp.transaction_date_roc_chinese),
-                  fmt(comp.building_area,2),areaDiff,fmt(comp.distance_m,0),
-                  Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*3.305785).toLocaleString():'—',
+                  (meaningful(comp.building_area)&&Number.isFinite(compArea)?`${compArea.toFixed(2)} / ${(compArea/SQM_PER_PING).toFixed(2)}`:'—'),areaDiff,fmt(comp.distance_m,0),
+                  Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*SQM_PER_PING).toLocaleString():'—',
+                  (meaningful(comp.total_price_ntd)&&Number(comp.total_price_ntd)>0?Math.round(Number(comp.total_price_ntd)).toLocaleString():'—'),
                   fmt(comp.building_age,1),
                   `${floorText} / ${meaningful(comp.total_floors)&&Number(comp.total_floors)!==0?comp.total_floors:'—'}`,
                   layout,safe(comp.material),elevatorValue,binary(comp.management_org),
@@ -739,6 +756,7 @@
             const fields={bldg_area:m.building_area_sqm,land_area:m.land_area_sqm,total_floors:m.total_floors,
                 rooms:m.rooms,halls:m.halls,baths:m.bathrooms,floor};
             Object.entries(fields).forEach(([id,v])=>{if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))){const el=document.getElementById(id);if(el)el.value=id==='age'?Number(v).toFixed(2):String(v);}});
+            refreshSubjectPing();
             const type=String(m.building_type_raw||'');
             const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
             if(mapped && document.getElementById('bldg_type')) document.getElementById('bldg_type').value=mapped;
@@ -799,17 +817,25 @@
             if(!latestRetrievalData?.top10_comparables) return [];
             return [...document.querySelectorAll('input[name="compCheckbox"]:checked')].map(e=>latestRetrievalData.top10_comparables[Number(e.value)]).filter(Boolean);
         }
+        // Adjustment groups follow the existing government four-sheet Excel form.
         const ADJUSTMENT_GROUPS = [
-          {key:'sale',label:'1. Sale Conditions',items:[['sale','Sale conditions']]},
-          {key:'time',label:'2. Time',items:[['time','Market time adjustment']]},
-          {key:'location',label:'3. Location',items:[['transport','Transportation'],['roads','Road access'],['natural','Natural conditions'],['environment','Environment'],['trends','Market trends']]},
-          {key:'property',label:'4. Property',items:[['area','Floor area'],['age','Building age'],['structure','Structure'],['elevator','Elevator'],['management','Management committee'],['layout','Layout'],['other','Other property differences']]}
+          {key:'sale',label:'1. Transaction Condition',items:[['sale','Transaction Condition Adjustment']]},
+          {key:'time',label:'2. Time Adjustment',items:[['time','Market Time Adjustment']]},
+          {key:'location',label:'3. Regional Factors',items:[
+            ['land_use','Land Use Control'],['transport','Transportation'],
+            ['natural','Natural Conditions'],['land_improvements','Land Improvements'],
+            ['public_facilities','Public Facilities'],['special_facilities','Special Facilities'],
+            ['future_development','Future Development Trend'],['other_regional','Other Factors']]},
+          {key:'property',label:'4. Individual Factors',items:[
+            ['legal','Administrative & Legal Conditions'],['site','Site Physical Conditions'],
+            ['building','Building Physical Conditions'],['road_frontage','Road Frontage Conditions'],
+            ['proximity','Proximity to Public Facilities'],['surrounding','Surrounding Environment']]}
         ];
         function adjustmentState(c,i){
           const id=String(c.comparable_id);
           const a=manualAdjustmentState[id] ||= {weight:i===1?34:33,notes:'',exception:false,exception_reason:'',items:{}};
-          if(!a.items)a.items={};
-          for(const g of ADJUSTMENT_GROUPS)for(const [k] of g.items)if(a.items[k]===undefined)a.items[k]=0;
+          if(!a.items)a.items={};if(!a.conditions)a.conditions={};
+          for(const g of ADJUSTMENT_GROUPS)for(const [k] of g.items){if(a.items[k]===undefined)a.items[k]=0;if(a.conditions[k]===undefined)a.conditions[k]='Average';}
           return a;
         }
         function adjustmentFactor(a,g){return 1+g.items.reduce((sum,[k])=>sum+Number(a.items[k]||0),0)/100;}
@@ -844,7 +870,15 @@
             tbl.innerHTML='<thead><tr class="bg-slate-50"><th class="p-3 text-left w-52">Adjustment item</th><th class="p-3">Subject</th>'+comps.map(c=>`<th class="p-3 text-center">#${c.rank} ${esc(String(c.address||'').slice(0,20))}</th>`).join('')+'</tr></thead>';
             const tb=document.createElement('tbody');
             for(const [k,label] of g.items){const tr=document.createElement('tr');tr.className='border-t border-slate-100';tr.innerHTML=`<td class="p-3 font-medium">${label}</td><td class="p-3 text-center bg-slate-50 text-slate-500">100% base</td>`;
-              comps.forEach((c,i)=>{const a=adjustmentState(c,i),td=document.createElement('td');td.className='p-2 text-center';const input=document.createElement('input');input.type='number';input.step=k==='time'?'0.01':'1';input.min='1';input.max='999';input.className='border rounded-lg w-20 px-2 py-1 text-right';input.value=String(k==='time' ? Number(100+Number(a.items[k])).toFixed(2) : Math.round(100+Number(a.items[k])));input.title='100 = unchanged; 105 = +5%; 95 = -5%';input.addEventListener('input',()=>{if(input.value==='')return;const v=Number(input.value);if((k!=='time'&&!Number.isInteger(v))||v<=0)return; a.items[k]=v-100;if(k==='time')a.timeOverridden=true;calculateAppraisal();});input.addEventListener('change',()=>{let v=k==='time'?Number(input.value):Math.round(Number(input.value));if(!Number.isFinite(v)||v<=0)v=100;input.value=String(v);a.items[k]=v-100;if(k==='time')a.timeOverridden=true;calculateAppraisal();});td.append(input,document.createTextNode(' %'));if(k==='time'){const detail=document.createElement('div');detail.className='text-[11px] text-slate-500 mt-1';const m=a.moi;detail.textContent=m?`${m.transaction_quarter}: ${m.transaction_index} → ${m.reference_quarter}: ${m.reference_index}${a.timeOverridden?' · Appraiser edited':''}`:(a.moiError||'Loading MOI index…');td.appendChild(detail);const reset=document.createElement('button');reset.type='button';reset.className='block mx-auto mt-1 text-indigo-700 underline text-xs';reset.textContent='Reset to MOI';reset.onclick=()=>{if(!a.moi)return;a.items.time=a.moi.factor_percent-100;a.timeOverridden=false;input.value=a.moi.factor_percent.toFixed(2);detail.textContent=`${a.moi.transaction_quarter}: ${a.moi.transaction_index} → ${a.moi.reference_quarter}: ${a.moi.reference_index}`;calculateAppraisal();};td.appendChild(reset);}if(g.key==='property'){const detail=document.createElement('div');detail.className='text-[11px] text-slate-500 mt-1 whitespace-normal max-w-52 mx-auto';detail.innerHTML=propertyEvidence(k,c);td.appendChild(detail);}tr.appendChild(td);});tb.appendChild(tr);}
+              comps.forEach((c,i)=>{const a=adjustmentState(c,i),td=document.createElement('td');td.className='p-2 text-center';const input=document.createElement('input');input.type='number';input.step=k==='time'?'0.01':'1';input.min='1';input.max='999';input.className='border rounded-lg w-20 px-2 py-1 text-right';input.value=String(k==='time' ? Number(100+Number(a.items[k])).toFixed(2) : Math.round(100+Number(a.items[k])));input.title='100 = unchanged; 105 = +5%; 95 = -5%';input.addEventListener('input',()=>{if(input.value==='')return;const v=Number(input.value);if((k!=='time'&&!Number.isInteger(v))||v<=0)return; a.items[k]=v-100;if(k==='time')a.timeOverridden=true;calculateAppraisal();});input.addEventListener('change',()=>{let v=k==='time'?Number(input.value):Math.round(Number(input.value));if(!Number.isFinite(v)||v<=0)v=100;input.value=String(v);a.items[k]=v-100;if(k==='time')a.timeOverridden=true;calculateAppraisal();});td.append(input,document.createTextNode(' %'));
+                if(g.key==='location'||g.key==='property'){
+                  const sel=document.createElement('select');sel.className='block mx-auto mt-1 border rounded text-xs p-1 max-w-40';
+                  for(const choice of ['Very Inferior','Inferior','Slightly Inferior','Average','Slightly Superior','Superior','Very Superior']){
+                    const option=new Option(choice,choice);sel.add(option);
+                  }
+                  sel.value=a.conditions[k]||'Average';sel.addEventListener('change',()=>{a.conditions[k]=sel.value;});td.appendChild(sel);
+                }
+                if(k==='time'){const detail=document.createElement('div');detail.className='text-[11px] text-slate-500 mt-1';const m=a.moi;detail.textContent=m?`${m.transaction_quarter}: ${m.transaction_index} → ${m.reference_quarter}: ${m.reference_index}${a.timeOverridden?' · Appraiser edited':''}`:(a.moiError||'Loading MOI index…');td.appendChild(detail);const reset=document.createElement('button');reset.type='button';reset.className='block mx-auto mt-1 text-indigo-700 underline text-xs';reset.textContent='Reset to MOI';reset.onclick=()=>{if(!a.moi)return;a.items.time=a.moi.factor_percent-100;a.timeOverridden=false;input.value=a.moi.factor_percent.toFixed(2);detail.textContent=`${a.moi.transaction_quarter}: ${a.moi.transaction_index} → ${a.moi.reference_quarter}: ${a.moi.reference_index}`;calculateAppraisal();};td.appendChild(reset);}if(g.key==='property' && ['area','age','structure','elevator','management','layout'].includes(k)){const detail=document.createElement('div');detail.className='text-[11px] text-slate-500 mt-1 whitespace-normal max-w-52 mx-auto';detail.innerHTML=propertyEvidence(k,c);td.appendChild(detail);}tr.appendChild(td);});tb.appendChild(tr);}
             const foot=document.createElement('tr');foot.className='bg-slate-50 border-t font-semibold';foot.innerHTML=`<td class="p-3">${g.label} subtotal</td><td class="p-3 text-center">100%</td>`+comps.map((c,i)=>`<td class="p-3 text-center" id="sub-${g.key}-${i}">100%</td>`).join('');tb.appendChild(foot);tbl.appendChild(tb);sc.appendChild(tbl);box.appendChild(sc);
             const status=document.createElement('div');status.className='px-4 py-2 text-xs border-t';status.id='check-'+g.key;box.appendChild(status);root.appendChild(box);
           }
@@ -865,18 +899,18 @@
           });
           for(const g of ADJUSTMENT_GROUPS){const el=document.getElementById('check-'+g.key);if(!el)continue;const relevant=g.key==='location'||g.key==='property';const flags=checks.map((ch,i)=>relevant&&Math.abs((ch.gf[g.key]-1)*100)>15?`#${comps[i].rank} exceeds 15%`:'').filter(Boolean);el.textContent=flags.length?'Article 25 · '+flags.join(' · '):relevant?'Article 25 · Group adjustment within 15%':'Manual adjustment';el.className='px-4 py-2 text-xs border-t '+(flags.length?'bg-rose-50 text-rose-700':'bg-emerald-50 text-emerald-800');}
           const high=Math.max(...values),low=Math.min(...values);const spread=(high+low)>0?(high-low)/((high+low)/2)*100:0;
-          if(weight!==100)messages.push('Weights must total 100%.');if(spread>=20)messages.push('Article 26: indicated-price spread ≥20%.');if(blocked)messages.push('Article 25: adjustment threshold exceeded.');
+          if(weight!==100)messages.push('Weights must total 100%.');if(spread>20)messages.push('Article 26: indicated-price spread >20%.');if(blocked)messages.push('Article 25: adjustment threshold exceeded.');
           const row=(label,vals)=>`<tr class="border-b"><td class="p-2">${label}</td>`+vals.map(v=>`<td class="p-2 text-right font-mono">${v}</td>`).join('')+'</tr>';
           const detail=document.getElementById('valuationDetailBody');if(detail){let html=row('Original unit price (NTD/Ping)',comps.map(c=>money(Number(c.raw_unit_price_m2))));for(const g of ADJUSTMENT_GROUPS)html+=row(g.label+' factor',checks.map(ch=>percent(ch.gf[g.key]*100)));html+=row('Indicated unit price (NTD/Ping)',values.map(money));detail.innerHTML=html;}
-          const spreadEl=document.getElementById('spreadDetail');if(spreadEl){spreadEl.textContent=`Adjusted unit-price range: ${money(low)}–${money(high)} NTD/Ping · Spread ${Math.round(spread)}% · ${spread>=20?'Review indicated-price dispersion (20% threshold)':'Within 20% spread threshold'}.`;spreadEl.className='mt-3 text-sm p-3 rounded '+(spread>=20||blocked?'bg-rose-50 text-rose-800':'bg-emerald-50 text-emerald-800');}
+          const spreadEl=document.getElementById('spreadDetail');if(spreadEl){spreadEl.textContent=`Adjusted unit-price range: ${money(low)}–${money(high)} NTD/Ping · Spread ${Math.round(spread)}% · ${spread>20?'Review indicated-price dispersion (20% threshold)':'Within 20% spread threshold'}.`;spreadEl.className='mt-3 text-sm p-3 rounded '+(spread>20||blocked?'bg-rose-50 text-rose-800':'bg-emerald-50 text-emerald-800');}
           const wb=document.getElementById('weightDetailBody');if(wb){wb.innerHTML=row('Total absolute adjustment',checks.map(ch=>percent(ch.absTotal)).concat(['—']))+row('Indicated unit price (NTD/Ping)',values.map(money).concat(['—']))+'<tr class="border-b"><td class="p-2">Appraiser weight (%)</td>'+comps.map((c,i)=>`<td class="p-2 text-right"><input type="number" min="0" max="100" step="1" data-weight="${i}" class="border rounded w-20 p-1 text-right" value="${adjustmentState(c,i).weight}"> %</td>`).join('')+`<td class="p-2 text-right font-semibold">${weight}%</td></tr>`+row('Weighted contribution (NTD/Ping)',values.map((v,i)=>money(v*adjustmentState(comps[i],i).weight/100)).concat([money(total)]));wb.querySelectorAll('[data-weight]').forEach(input=>{input.onchange=()=>{const i=Number(input.dataset.weight),v=Number(input.value);if(input.value!==''&&Number.isInteger(v)&&v>=0&&v<=100)adjustmentState(comps[i],i).weight=v;calculateAppraisal();};});}
           const ws=document.getElementById('weightStatus');if(ws){ws.textContent=`Total weights: ${weight}% ${weight===100?'— valid':'— must equal 100%'} · Comparative unit value: ${money(total)} NTD/Ping`;ws.className='mt-3 p-3 rounded text-sm '+(weight===100?'bg-emerald-50 text-emerald-800':'bg-rose-50 text-rose-800');}
           const summary=document.getElementById('appraisalSummary');summary.innerHTML=`<div class="text-sm text-slate-600">Comparative Unit Value</div><div class="text-3xl font-black text-indigo-900">${money(total)} NTD/Ping</div><div class="text-sm mt-2">Total weight: ${weight}% | Spread: ${spread.toFixed(2)}% | ${esc(messages.join(' ')||'Regulatory screening passed.')}</div>`;summary.dataset.spread=spread;summary.dataset.blocked=blocked;summary.dataset.weightsValid=weight===100;
         }
         async function exportReviewedAppraisal(){
           const comps=selectedForAppraisal();if(comps.length!==3)return alert('Select exactly 3 comparables.');calculateAppraisal();const summary=document.getElementById('appraisalSummary');
-          if(summary.dataset.blocked==='true')return alert('Article 25: resolve adjustment screening or document exception.');if(summary.dataset.weightsValid!=='true')return alert('Comparable weights must total 100%.');if(Number(summary.dataset.spread)>=20)return alert('Article 26: price spread ≥20%. Review and replace unsuitable comparable.');
-          const rows=comps.map((c,i)=>{const a=adjustmentState(c,i);return {comparable_id:String(c.comparable_id),weight:a.weight,notes:a.notes,exception:a.exception,exception_reason:a.exception_reason,items:a.items,moi_transaction_quarter:a.moi?.transaction_quarter||'',moi_reference_quarter:a.moi?.reference_quarter||'',moi_factor:a.moi?.factor||null,sale:adjustmentNet(a,ADJUSTMENT_GROUPS[0]),time:adjustmentNet(a,ADJUSTMENT_GROUPS[1]),location:adjustmentNet(a,ADJUSTMENT_GROUPS[2]),property:adjustmentNet(a,ADJUSTMENT_GROUPS[3])};});
+          if(summary.dataset.blocked==='true')return alert('Article 25: resolve adjustment screening or document exception.');if(summary.dataset.weightsValid!=='true')return alert('Comparable weights must total 100%.');if(Number(summary.dataset.spread)>20)return alert('Article 26: price spread >20%. Review and replace unsuitable comparable.');
+          const rows=comps.map((c,i)=>{const a=adjustmentState(c,i);return {comparable_id:String(c.comparable_id),weight:a.weight,notes:a.notes,exception:a.exception,exception_reason:a.exception_reason,items:a.items,conditions:a.conditions,moi_transaction_quarter:a.moi?.transaction_quarter||'',moi_reference_quarter:a.moi?.reference_quarter||'',moi_factor:a.moi?.factor||null,sale:adjustmentNet(a,ADJUSTMENT_GROUPS[0]),time:adjustmentNet(a,ADJUSTMENT_GROUPS[1]),location:adjustmentNet(a,ADJUSTMENT_GROUPS[2]),property:adjustmentNet(a,ADJUSTMENT_GROUPS[3])};});
           const payload={subject:{address:document.getElementById('targetAddress').value,bldg_type:document.getElementById('bldg_type').value,main_use:document.getElementById('main_use').value,material:document.getElementById('material').value,building_area:Number(document.getElementById('bldg_area').value),land_area:Number(document.getElementById('land_area').value),floor:Number(document.getElementById('floor').value),total_floors:Number(document.getElementById('total_floors').value),building_age:Number(document.getElementById('age').value),zoning_name:targetZoningData.zoning_type},selected_comparables:comps,valuation_date:document.getElementById('valuationDate').value,district:document.getElementById('targetDistrict').value,appraisal_adjustments:{comparables:rows,article26_review:'',appraiser:''}};
           try{const resp=await fetch(`${API_BASE_URL}/api/v1/appraisal/export-reviewed-excel`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify(payload)});if(!resp.ok){const e=await resp.json().catch(()=>({detail:'Export failed'}));throw new Error(e.detail||'Export failed');}const blob=await resp.blob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='Taichung_Appraisal_Report_4Sheets.xlsx';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){console.error('Reviewed appraisal export failed:',e);alert('Excel export error: '+(e instanceof TypeError?'Network/download interrupted. Check FastAPI server logs and ngrok connection.':e.message));}
         }
