@@ -637,7 +637,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
                 
-                const roundedAge = Number(comp.building_age).toFixed(1);
+                const roundedAge = Number(comp.building_age).toFixed(2);
                 const isPreChecked = idx < 3 ? "checked" : "";
                 const pingPrice = Math.round(comp.raw_unit_price_m2 * 3.305785);
                 const adjPingPrice = Math.round(comp.ref_adjusted_unit_price_m2 * 3.305785);
@@ -667,7 +667,7 @@
                   (meaningful(comp.building_area)&&Number.isFinite(compArea)?`${compArea.toFixed(2)} / ${(compArea/SQM_PER_PING).toFixed(2)}`:'—'),areaDiff,fmt(comp.distance_m,0),
                   Number(comp.raw_unit_price_m2)>0?Math.round(Number(comp.raw_unit_price_m2)*SQM_PER_PING).toLocaleString():'—',
                   (meaningful(comp.total_price_ntd)&&Number(comp.total_price_ntd)>0?Math.round(Number(comp.total_price_ntd)).toLocaleString():'—'),
-                  fmt(comp.building_age,1),
+                  fmt(comp.building_age,2),
                   `${floorText} / ${meaningful(comp.total_floors)&&Number(comp.total_floors)!==0?comp.total_floors:'—'}`,
                   layout,safe(comp.material),elevatorValue,binary(comp.management_org),
                   binary(comp.parking_record_present ?? comp.parking_availability ?? comp.parking_type),
@@ -883,6 +883,7 @@
             const status=document.createElement('div');status.className='px-4 py-2 text-xs border-t';status.id='check-'+g.key;box.appendChild(status);root.appendChild(box);
           }
           const summary=document.createElement('section');summary.className='border rounded-xl p-4 overflow-x-auto';summary.innerHTML='<h4 class="font-bold mb-3">Indicated Unit Prices & Regulatory Review</h4><table class="w-full text-sm" style="min-width:750px"><thead><tr class="bg-slate-100"><th class="p-2 text-left">Item</th>'+comps.map(c=>`<th class="p-2 text-right">#${c.rank}</th>`).join('')+'</tr></thead><tbody id="valuationDetailBody"></tbody></table><div id="spreadDetail" class="mt-3 text-sm"></div>';root.appendChild(summary);
+          const exceptions=document.createElement('section');exceptions.className='border rounded-xl p-4';exceptions.innerHTML='<h4 class="font-bold mb-2">Article 25 · Special-case documentation</h4><div id="article25Exceptions" class="space-y-3 text-sm"></div>';root.appendChild(exceptions);
           const weights=document.createElement('section');weights.className='border rounded-xl p-4 overflow-x-auto';weights.innerHTML='<h4 class="font-bold mb-3">Decide the comparative value</h4><table class="w-full text-sm" style="min-width:750px"><thead><tr class="bg-slate-100"><th class="p-2 text-left">Item</th>'+comps.map(c=>`<th class="p-2 text-right">#${c.rank}</th>`).join('')+'<th class="p-2 text-right">Total</th></tr></thead><tbody id="weightDetailBody"></tbody></table><div id="weightStatus" class="mt-3 text-sm"></div>';root.appendChild(weights);
           calculateAppraisal();
         }
@@ -894,12 +895,28 @@
             const loc=ADJUSTMENT_GROUPS[2],prop=ADJUSTMENT_GROUPS[3];const over15=[loc,prop].some(g=>Math.abs(adjustmentNet(a,g))>15||g.items.some(([k])=>Math.abs(Number(a.items[k]))>15));
             const absTotal=ADJUSTMENT_GROUPS.reduce((n,g)=>n+g.items.reduce((z,[k])=>z+Math.abs(Number(a.items[k])),0),0);
             const invalid=ADJUSTMENT_GROUPS.some(g=>g.items.some(([k])=>!Number.isFinite(Number(a.items[k]))||Number(a.items[k])<=-100));
-            if(over15||absTotal>30||invalid)blocked=true;
+            if(invalid || ((over15||absTotal>30) && !(a.exception && String(a.exception_reason||'').trim())))blocked=true;
             checks.push({over15,over30:absTotal>30,absTotal,invalid,gf});
           });
+          const exceptionPanel=document.getElementById('article25Exceptions');
+          if(exceptionPanel){
+            exceptionPanel.innerHTML='';
+            checks.forEach((ch,i)=>{
+              if(!(ch.over15||ch.over30))return;
+              const a=adjustmentState(comps[i],i);
+              const box=document.createElement('div');box.className='border rounded-lg p-3 space-y-2';
+              const head=document.createElement('div');head.className='font-medium';head.textContent=`Comparable #${comps[i].rank}: ${ch.over30?'total absolute adjustment '+ch.absTotal.toFixed(2)+'% exceeds 30%':''}${ch.over15?(ch.over30?' · ':'')+'regional/individual adjustment exceeds 15%':''}`;box.appendChild(head);
+              const label=document.createElement('label');label.className='flex gap-2 items-center';
+              const check=document.createElement('input');check.type='checkbox';check.checked=!!a.exception;check.onchange=()=>{a.exception=check.checked;calculateAppraisal();};label.append(check,document.createTextNode('Document special-case exception (appraiser approval required)'));box.appendChild(label);
+              const reason=document.createElement('textarea');reason.rows=2;reason.className='w-full border rounded p-2';reason.placeholder='Explain the evidence and rationale for this exception';reason.value=a.exception_reason||'';reason.disabled=!a.exception;
+              reason.onchange=()=>{a.exception_reason=reason.value;calculateAppraisal();};box.appendChild(reason);
+              exceptionPanel.appendChild(box);
+            });
+            if(!exceptionPanel.children.length)exceptionPanel.textContent='No Article 25 adjustment exception required.';
+          }
           for(const g of ADJUSTMENT_GROUPS){const el=document.getElementById('check-'+g.key);if(!el)continue;const relevant=g.key==='location'||g.key==='property';const flags=checks.map((ch,i)=>relevant&&Math.abs((ch.gf[g.key]-1)*100)>15?`#${comps[i].rank} exceeds 15%`:'').filter(Boolean);el.textContent=flags.length?'Article 25 · '+flags.join(' · '):relevant?'Article 25 · Group adjustment within 15%':'Manual adjustment';el.className='px-4 py-2 text-xs border-t '+(flags.length?'bg-rose-50 text-rose-700':'bg-emerald-50 text-emerald-800');}
           const high=Math.max(...values),low=Math.min(...values);const spread=(high+low)>0?(high-low)/((high+low)/2)*100:0;
-          if(weight!==100)messages.push('Weights must total 100%.');if(spread>20)messages.push('Article 26: indicated-price spread >20%.');if(blocked)messages.push('Article 25: adjustment threshold exceeded.');
+          if(weight!==100)messages.push('Weights must total 100%.');if(spread>20)messages.push('Article 26: indicated-price spread >20%.');if(blocked)messages.push('Article 25: adjustment exception requires approval and written rationale.');else if(checks.some(ch=>ch.over15||ch.over30))messages.push('Article 25: documented special-case exception.');
           const row=(label,vals)=>`<tr class="border-b"><td class="p-2">${label}</td>`+vals.map(v=>`<td class="p-2 text-right font-mono">${v}</td>`).join('')+'</tr>';
           const detail=document.getElementById('valuationDetailBody');if(detail){let html=row('Original unit price (NTD/Ping)',comps.map(c=>money(Number(c.raw_unit_price_m2))));for(const g of ADJUSTMENT_GROUPS)html+=row(g.label+' factor',checks.map(ch=>percent(ch.gf[g.key]*100)));html+=row('Indicated unit price (NTD/Ping)',values.map(money));detail.innerHTML=html;}
           const spreadEl=document.getElementById('spreadDetail');if(spreadEl){if(spread>20){spreadEl.textContent=`Adjusted unit-price range: ${money(low)}–${money(high)} NTD/Ping · Spread ${Math.round(spread)}% · Review indicated-price dispersion (20% threshold).`;spreadEl.className='mt-3 text-sm p-3 rounded bg-rose-50 text-rose-800';spreadEl.classList.remove('hidden');}else{spreadEl.textContent='';spreadEl.classList.add('hidden');}}
@@ -909,7 +926,7 @@
         }
         async function exportReviewedAppraisal(){
           const comps=selectedForAppraisal();if(comps.length!==3)return alert('Select exactly 3 comparables.');calculateAppraisal();const summary=document.getElementById('appraisalSummary');
-          if(summary.dataset.blocked==='true')return alert('Article 25: resolve adjustment screening or document exception.');if(summary.dataset.weightsValid!=='true')return alert('Comparable weights must total 100%.');if(Number(summary.dataset.spread)>20)return alert('Article 26: price spread >20%. Review and replace unsuitable comparable.');
+          if(summary.dataset.blocked==='true')return alert('Article 25: approve the applicable special-case exception and enter a written rationale for each flagged comparable.');if(summary.dataset.weightsValid!=='true')return alert('Comparable weights must total 100%.');if(Number(summary.dataset.spread)>20)return alert('Article 26: price spread >20%. Review and replace unsuitable comparable.');
           const rows=comps.map((c,i)=>{const a=adjustmentState(c,i);return {comparable_id:String(c.comparable_id),weight:a.weight,notes:a.notes,exception:a.exception,exception_reason:a.exception_reason,items:a.items,conditions:a.conditions,moi_transaction_quarter:a.moi?.transaction_quarter||'',moi_reference_quarter:a.moi?.reference_quarter||'',moi_factor:a.moi?.factor||null,sale:adjustmentNet(a,ADJUSTMENT_GROUPS[0]),time:adjustmentNet(a,ADJUSTMENT_GROUPS[1]),location:adjustmentNet(a,ADJUSTMENT_GROUPS[2]),property:adjustmentNet(a,ADJUSTMENT_GROUPS[3])};});
           const payload={subject:{address:document.getElementById('targetAddress').value,bldg_type:document.getElementById('bldg_type').value,main_use:document.getElementById('main_use').value,material:document.getElementById('material').value,building_area:Number(document.getElementById('bldg_area').value),land_area:Number(document.getElementById('land_area').value),floor:Number(document.getElementById('floor').value),total_floors:Number(document.getElementById('total_floors').value),building_age:Number(document.getElementById('age').value),zoning_name:targetZoningData.zoning_type},selected_comparables:comps,valuation_date:document.getElementById('valuationDate').value,district:document.getElementById('targetDistrict').value,appraisal_adjustments:{comparables:rows,article26_review:'',appraiser:''}};
           try{const resp=await fetch(`${API_BASE_URL}/api/v1/appraisal/export-reviewed-excel`,{method:'POST',headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},body:JSON.stringify(payload)});if(!resp.ok){const e=await resp.json().catch(()=>({detail:'Export failed'}));throw new Error(e.detail||'Export failed');}const blob=await resp.blob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='Taichung_Appraisal_Report_4Sheets.xlsx';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){console.error('Reviewed appraisal export failed:',e);alert('Excel export error: '+(e instanceof TypeError?'Network/download interrupted. Check FastAPI server logs and ngrok connection.':e.message));}
