@@ -735,7 +735,18 @@
             const mapped=type.includes('華廈')?'Mansion':type.includes('公寓')?'Apartment':type.includes('透天')?'Townhouse':type.includes('大樓')?'Tower':null;
             if(mapped && document.getElementById('bldg_type')) document.getElementById('bldg_type').value=mapped;
             if(m.building_material_raw){const sel=document.getElementById('material');const raw=String(m.building_material_raw).trim();let option=[...sel.options].find(o=>o.value===raw||o.value&&raw.includes(o.value));if(!option&&raw.includes('鋼筋混凝土'))option=[...sel.options].find(o=>o.value==='鋼筋混凝土造');if(!option){option=new Option(raw,raw);sel.add(option);}sel.value=option.value;}
-            if(m.elevator!==null&&m.elevator!==undefined&&Number.isFinite(Number(m.elevator)))document.getElementById('elevator').value=String(Number(m.elevator));
+            // Prefer the Feature Master value; infer only from explicit MOI building-type wording.
+            const elevatorSelect=document.getElementById('elevator');
+            const rawElevator=m.elevator;
+            if(rawElevator!==null&&rawElevator!==undefined&&rawElevator!==''&&['0','1'].includes(String(Number(rawElevator)))) {
+                elevatorSelect.value=String(Number(rawElevator));
+            } else if(type.includes('有電梯')&&(type.includes('華廈')||type.includes('住宅大樓'))) {
+                elevatorSelect.value='1';
+            } else if(type.includes('無電梯')&&type.includes('公寓')) {
+                elevatorSelect.value='0';
+            } else {
+                elevatorSelect.value='';
+            }
             if(m.management_org!==null&&m.management_org!==undefined&&Number.isFinite(Number(m.management_org)))document.getElementById('mgmt').value=String(Number(m.management_org));
             const parkingValue=m.parking_record_present ?? m.parking_availability;
             if(parkingValue!==null&&parkingValue!==undefined&&Number.isFinite(Number(parkingValue)))document.getElementById('parking').value=String(Number(parkingValue));
